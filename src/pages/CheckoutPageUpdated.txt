@@ -1,0 +1,46 @@
+Lines 404-432 replacement:
+
+              {/* Payment Screenshot Upload */}
+              {paymentMethod === 'paynow' && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Payment Screenshot <span className="text-red-500">*</span>
+                  </label>
+                  
+                  {screenshotUploaded ? (
+                    <div className="p-4 bg-green-50 border-2 border-green-500 rounded-lg">
+                      <p className="text-green-700 font-semibold flex items-center gap-2">
+                        <span className="text-2xl">✓</span>
+                        <span>Screenshot sent successfully!</span>
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Payment proof has been uploaded and cannot be changed.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <input 
+                        type="file" 
+                        accept="image/*,.pdf"
+                        onChange={(e) => setPaymentScreenshot(e.target.files[0])}
+                        disabled={screenshotUploaded}
+                        className="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Upload payment screenshot (JPG, PNG, PDF - Max 5MB)
+                      </p>
+                      {paymentScreenshot && (
+                        <p className="text-xs text-green-600 mt-1">
+                          ✓ File selected: {paymentScreenshot.name}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              <button onClick={handleSubmit} disabled={loading || screenshotUploaded}
+                      className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-secondary disabled:bg-gray-400 disabled:cursor-not-allowed">
+                {screenshotUploaded ? 'Payment Submitted ✓' : loading ? 'Processing...' : paymentMethod === 'paynow' ? 'Confirm Booking' : `Pay ${paymentAmount}`}
+              </button>
