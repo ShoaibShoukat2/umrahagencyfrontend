@@ -1,6 +1,6 @@
 // API Base URL - automatically detects environment
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://backend.tmfouzy.sg/api'  // Production backend
+  ? 'https://Tmfauwaz.pythonanywhere.com/api'  // Production backend
   : '/api';  // Development (proxy)
 
 export const api = {
