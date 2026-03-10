@@ -1,7 +1,5 @@
-// API Base URL - automatically detects environment
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://Tmfauwaz.pythonanywhere.com/api'  // Production backend
-  : '/api';  // Development (proxy)
+// API Base URL - Use environment variable or default to PythonAnywhere
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://samugatravels1.pythonanywhere.com/api';
 
 export const api = {
   // Categories
@@ -21,6 +19,9 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/packages/featured/`);
     return response.json();
   },
+
+
+  
 
   getPackageBySlug: async (slug) => {
     const response = await fetch(`${API_BASE_URL}/packages/${slug}/`);

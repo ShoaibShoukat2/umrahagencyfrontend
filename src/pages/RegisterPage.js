@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 
+// API Base URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://samugatravels1.pythonanywhere.com/api';
+
 const RegisterPage = ({ navigate }) => {
   const [step, setStep] = useState(1); // 1: Register Form, 2: OTP Verification
   const [formData, setFormData] = useState({
@@ -35,7 +38,7 @@ const RegisterPage = ({ navigate }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register/', {
+      const response = await fetch(`${API_BASE_URL}/auth/register/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -63,7 +66,7 @@ const RegisterPage = ({ navigate }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/verify-otp/', {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-otp/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

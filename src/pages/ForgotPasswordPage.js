@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 
+// API Base URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://samugatravels1.pythonanywhere.com/api';
+
 const ForgotPasswordPage = ({ navigate }) => {
   const [step, setStep] = useState(1); // 1: Request OTP, 2: Verify & Reset
   const [email, setEmail] = useState('');
@@ -17,7 +20,7 @@ const ForgotPasswordPage = ({ navigate }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/request-otp/', {
+      const response = await fetch(`${API_BASE_URL}/auth/request-otp/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -56,7 +59,7 @@ const ForgotPasswordPage = ({ navigate }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/reset-password/', {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

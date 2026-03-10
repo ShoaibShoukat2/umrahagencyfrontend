@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './QRCodeManager.css';
 
+// API Base URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+
 const QRCodeManager = () => {
   const [packages, setPackages] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -15,7 +18,7 @@ const QRCodeManager = () => {
 
   const loadPackages = async () => {
     try {
-      const response = await fetch('/api/packages/');
+      const response = await fetch(`${API_BASE_URL}/packages/`);
       const data = await response.json();
       setPackages(data.results || data);
       
@@ -31,7 +34,7 @@ const QRCodeManager = () => {
   const loadRoomingList = async (packageId) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/qr/rooming-list/${packageId}/`);
+      const response = await fetch(`${API_BASE_URL}/qr/rooming-list/${packageId}/`);
       const data = await response.json();
       
       if (data.success) {
@@ -44,12 +47,54 @@ const QRCodeManager = () => {
     }
   };
 
+  const generateIdTag = async (customerId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/qr/id-tag/${customerId}/`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setGeneratedTags(prev => ({
+          ...prev,
+          [`id_${customerId}`]: data
+        }));
+        alert('ID tag generated successfully!');
+      }
+    } catch (error) {
+      console.error('Error generating ID tag:', error);
+      alert('Failed to generate ID tag');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateBagTag = async (customerId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/qr/bag-tag/${customerId}/`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setGeneratedTags(prev => ({
+          ...prev,
+          [`bag_${customerId}`]: data
+        }));
+        alert('Bag tag generated successfully!');
+      }
+    } catch (error) {
+      console.error('Error generating bag tag:', error);
+      alert('Failed to generate bag tag');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const generateBulkTags = async (tagType) => {
     if (!selectedPackage) return;
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/qr/bulk-tags/${selectedPackage.id}/`, {
+      const response = await fetch(`${API_BASE_URL}/qr/bulk-tags/${selectedPackage.id}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +130,7 @@ const QRCodeManager = () => {
   const printRoomingList = () => {
     if (!selectedPackage) return;
     
-    const printUrl = `/api/qr/rooming-list/${selectedPackage.id}/print/`;
+    const printUrl = `${API_BASE_URL}/qr/rooming-list/${selectedPackage.id}/print/`;
     window.open(printUrl, '_blank');
   };
 

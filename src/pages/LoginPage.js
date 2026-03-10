@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 
+// API Base URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://samugatravels1.pythonanywhere.com/api';
+
 const LoginPage = ({ navigate, onLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
@@ -15,7 +18,7 @@ const LoginPage = ({ navigate, onLogin }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login/', {
+      const response = await fetch(`${API_BASE_URL}/auth/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
