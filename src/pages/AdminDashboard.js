@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api, adminApi } from '../api';
+import DocumentUploadSection from '../components/DocumentUploadSection';
 
 const AdminDashboard = ({ navigate }) => {
   const [adminUser, setAdminUser] = useState(null);
@@ -646,6 +647,14 @@ const AdminDashboard = ({ navigate }) => {
               <span className="text-xl">👤</span>
               <span>Customers</span>
             </button>
+
+            <button onClick={() => { setActiveSection('documents'); setMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'documents' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+              }`}>
+              <span className="text-xl">📄</span>
+              <span>Documents</span>
+            </button>
           </nav>
 
         {/* Footer Buttons - Fixed */}
@@ -674,8 +683,9 @@ const AdminDashboard = ({ navigate }) => {
             {activeSection === 'payments' && '💳 Manage Payments'}
             {activeSection === 'categories' && '🏷️ Manage Categories'}
             {activeSection === 'items' && '� Manage Shop Items'}
-            {activeSection === 'users' && '�👥 Manage Users'}
+            {activeSection === 'users' && '👥 Manage Users'}
             {activeSection === 'customers' && '👤 Manage Customers & Tour Leaders'}
+            {activeSection === 'documents' && '📄 Customer Documents'}
           </h1>
           <p className="text-gray-600">Welcome back, {adminUser?.username}</p>
         </div>
@@ -1317,6 +1327,13 @@ const AdminDashboard = ({ navigate }) => {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Documents Section */}
+        {activeSection === 'documents' && (
+          <div>
+            <DocumentUploadSection customers={data.customers || []} />
           </div>
         )}
       </div>

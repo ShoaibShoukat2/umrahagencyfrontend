@@ -407,5 +407,46 @@ export const adminApi = {
       body: JSON.stringify({ status })
     });
     return response.json();
+  },
+
+  // Customer Documents
+  getCustomerDocuments: async (customerEmail) => {
+    const response = await fetch(`${API_BASE_URL}/customer-documents/?email=${customerEmail}`);
+    return response.json();
+  },
+
+  uploadCustomerDocument: async (documentData) => {
+    const formData = new FormData();
+    formData.append('customer', documentData.customer_id);
+    if (documentData.booking_id) {
+      formData.append('booking', documentData.booking_id);
+    }
+    formData.append('document_type', documentData.document_type);
+    formData.append('title', documentData.title);
+    formData.append('description', documentData.description || '');
+    formData.append('file', documentData.file);
+    formData.append('is_important', documentData.is_important || false);
+    if (documentData.expiry_date) {
+      formData.append('expiry_date', documentData.expiry_date);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/customer-documents/upload/`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload document');
+    }
+    
+    return response.json();
+  },
+
+  deleteCustomerDocument: async (documentId) => {
+    const response = await fetch(`${API_BASE_URL}/customer-documents/${documentId}/`, {
+      method: 'DELETE'
+    });
+    return response.ok;
   }
 };
