@@ -7,7 +7,6 @@ const LandingPage = ({ navigate }) => {
   const [categories, setCategories] = useState([]);
   const [featuredPackages, setFeaturedPackages] = useState([]);
   const [items, setItems] = useState([]);
-  const { addToCart } = useCart();
 
   useEffect(() => {
     loadData();
@@ -497,9 +496,9 @@ const LandingPage = ({ navigate }) => {
             <div>
               <h4 className="font-bold mb-4">Follow Us</h4>
               <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">f</a>
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">in</a>
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">ig</a>
+                <button onClick={() => window.open('https://facebook.com', '_blank')} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">f</button>
+                <button onClick={() => window.open('https://linkedin.com', '_blank')} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">in</button>
+                <button onClick={() => window.open('https://instagram.com', '_blank')} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">ig</button>
               </div>
             </div>
           </div>

@@ -41,6 +41,7 @@ const PackageDetailPage = ({ navigate, packageData, bookingData }) => {
     if (packageData?.slug) {
       loadPackageDetails();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packageData]);
 
   const loadPackageDetails = async () => {

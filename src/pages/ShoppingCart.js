@@ -8,7 +8,6 @@ const ShoppingCart = ({ navigate }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('paynow');
   const [paymentScreenshot, setPaymentScreenshot] = useState(null);
-  const [screenshotUploaded, setScreenshotUploaded] = useState(false);
   const [user, setUser] = useState(null);
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(null);
@@ -139,7 +138,6 @@ const ShoppingCart = ({ navigate }) => {
       console.error('Checkout error:', error);
       alert('Error placing order. Please try again.');
       // Reset screenshot state on error
-      setScreenshotUploaded(false);
       setPaymentScreenshot(null);
     } finally {
       setIsCheckingOut(false);
