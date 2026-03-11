@@ -10,6 +10,7 @@ const AddOnsPage = ({ navigate, packageData, bookingData }) => {
     if (packageData) {
       loadAddons();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packageData]);
 
   const loadAddons = async () => {

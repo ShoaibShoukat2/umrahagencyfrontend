@@ -8,7 +8,6 @@ const CheckoutPage = ({ navigate, packageData, bookingData }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentType, setPaymentType] = useState('deposit');
   const [paymentScreenshot, setPaymentScreenshot] = useState(null);
-  const [screenshotUploaded, setScreenshotUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [discountCode, setDiscountCode] = useState('');
@@ -25,6 +24,7 @@ const CheckoutPage = ({ navigate, packageData, bookingData }) => {
     }
     setUser(JSON.parse(savedUser));
     loadPackage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPackage = async () => {
@@ -186,7 +186,6 @@ const CheckoutPage = ({ navigate, packageData, bookingData }) => {
       console.error('Booking error:', error);
       alert('Booking failed. Please try again.');
       // Reset screenshot state on error so user can try again
-      setScreenshotUploaded(false);
       setPaymentScreenshot(null);
     } finally {
       setLoading(false);
@@ -196,7 +195,6 @@ const CheckoutPage = ({ navigate, packageData, bookingData }) => {
   if (!pkg) return <div>Loading...</div>;
 
   const total = calculateTotal();
-  const minDeposit = parseFloat(pkg.min_deposit_amount);
 
   return (
     <div>

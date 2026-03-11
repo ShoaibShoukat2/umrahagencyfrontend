@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { api } from '../api';
-import { useCart } from '../context/CartContext';
 
 const LandingPage = ({ navigate }) => {
   const [categories, setCategories] = useState([]);

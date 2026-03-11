@@ -22,9 +22,7 @@ const AdminDashboard = ({ navigate }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tourLeaders, setTourLeaders] = useState([]);
   const [bookingRooms, setBookingRooms] = useState([{ id: 1, sharing_type: 'double', num_adults: 1, num_children: 0, num_infants: 0, passengers: [] }]);
-  const [bookingAddons, setBookingAddons] = useState([]);
   const [discountCode, setDiscountCode] = useState('');
-  const [discountAmount, setDiscountAmount] = useState(0);
 
   useEffect(() => {
     const admin = localStorage.getItem('adminUser');
@@ -34,6 +32,7 @@ const AdminDashboard = ({ navigate }) => {
     }
     setAdminUser(JSON.parse(admin));
     loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAllData = async () => {
@@ -174,9 +173,7 @@ const AdminDashboard = ({ navigate }) => {
     setSelectedItem(null);
     setFormData({});
     setBookingRooms([{ id: 1, sharing_type: 'double', num_adults: 1, num_children: 0, num_infants: 0, passengers: [] }]);
-    setBookingAddons([]);
     setDiscountCode('');
-    setDiscountAmount(0);
   };
 
   const addRoom = () => {
@@ -258,16 +255,16 @@ const AdminDashboard = ({ navigate }) => {
     try {
       const result = await api.validateDiscountCode(discountCode, formData.total_amount || 0);
       if (result.valid) {
-        setDiscountAmount(result.discount_amount);
+        // setDiscountAmount(result.discount_amount);
         alert(`Discount applied: $${result.discount_amount}`);
       } else {
         alert(result.message || 'Invalid discount code');
-        setDiscountAmount(0);
+        // setDiscountAmount(0);
       }
     } catch (error) {
-      console.error('Error validating discount:', error);
-      alert('Failed to validate discount code');
-      setDiscountAmount(0);
+      // console.error('Error validating discount:', error);
+      // alert('Failed to validate discount code');
+      // setDiscountAmount(0);
     }
   };
 

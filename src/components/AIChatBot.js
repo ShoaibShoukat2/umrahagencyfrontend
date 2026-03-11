@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { api } from '../api';
 
 function AIChatBot() {
   const [isOpen, setIsOpen] = useState(false);

@@ -21,10 +21,12 @@ const CategoryPage = ({ navigate, category }) => {
     if (category && category !== filters.category) {
       setFilters(prev => ({ ...prev, category }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   useEffect(() => {
     loadPackages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   useEffect(() => {
