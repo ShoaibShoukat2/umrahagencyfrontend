@@ -12,7 +12,6 @@ const ForgotPasswordPage = ({ navigate }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [sentOtp, setSentOtp] = useState('');
 
   const handleRequestOTP = async (e) => {
     e.preventDefault();
@@ -29,9 +28,8 @@ const ForgotPasswordPage = ({ navigate }) => {
       const data = await response.json();
 
       if (response.ok) {
-        setSentOtp(data.otp);
         setStep(2);
-        alert(`OTP sent to ${email}!\n\nFor testing: ${data.otp}`);
+        alert(`OTP sent to ${email}. Please check your email!`);
       } else {
         setError(data.error || 'Failed to send OTP');
       }
@@ -143,11 +141,9 @@ const ForgotPasswordPage = ({ navigate }) => {
                   <p className="text-green-800 text-sm">
                     📧 OTP sent to <strong>{email}</strong>
                   </p>
-                  {sentOtp && (
-                    <p className="text-green-600 text-xs mt-2">
-                      For testing: {sentOtp}
-                    </p>
-                  )}
+                  <p className="text-green-600 text-xs mt-2">
+                    Please check your email inbox and spam folder
+                  </p>
                 </div>
 
                 <div>

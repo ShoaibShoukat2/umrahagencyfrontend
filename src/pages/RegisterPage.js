@@ -18,7 +18,6 @@ const RegisterPage = ({ navigate }) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [sentOtp, setSentOtp] = useState(''); // For testing
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -47,9 +46,8 @@ const RegisterPage = ({ navigate }) => {
       const data = await response.json();
 
       if (response.ok) {
-        setSentOtp(data.otp); // For testing - remove in production
         setStep(2);
-        alert(`OTP sent to ${formData.email}. Check your email!\n\nFor testing: ${data.otp}`);
+        alert(`OTP sent to ${formData.email}. Please check your email!`);
       } else {
         setError(data.error || 'Registration failed');
       }
@@ -228,11 +226,9 @@ const RegisterPage = ({ navigate }) => {
                   <p className="text-green-800 text-sm">
                     📧 OTP has been sent to <strong>{formData.email}</strong>
                   </p>
-                  {sentOtp && (
-                    <p className="text-green-600 text-xs mt-2">
-                      For testing: {sentOtp}
-                    </p>
-                  )}
+                  <p className="text-green-600 text-xs mt-2">
+                    Please check your email inbox and spam folder
+                  </p>
                 </div>
 
                 <div>
