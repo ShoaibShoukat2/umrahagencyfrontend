@@ -1,5 +1,5 @@
 // API Base URL - Use environment variable or default to PythonAnywhere
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://samugatravels1.pythonanywhere.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api';
 
 export const api = {
   // Categories

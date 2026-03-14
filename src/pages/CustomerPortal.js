@@ -477,7 +477,7 @@ const CustomerPortal = ({ navigate }) => {
                     {/* Invoice Button */}
                     <div className="mb-4">
                       <button 
-                        onClick={() => window.open(`https://samugatravels1.pythonanywhere.com/api/bookings/${booking.id}/invoice/?email=${email}`, '_blank')}
+                        onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/bookings/${booking.id}/invoice/?email=${email}`, '_blank')}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2">
                         <span>📄</span>
                         <span>Download Invoice (PDF)</span>
@@ -615,7 +615,7 @@ const CustomerPortal = ({ navigate }) => {
                               <div className="text-right">
                                 <p className="font-bold text-green-600">${payment.amount}</p>
                                 <button 
-                                  onClick={() => window.open(`https://samugatravels1.pythonanywhere.com/api/payments/${payment.id}/receipt/?email=${email}`, '_blank')}
+                                  onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/payments/${payment.id}/receipt/?email=${email}`, '_blank')}
                                   className="mt-1 text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-all">
                                   Download Receipt (PDF)
                                 </button>

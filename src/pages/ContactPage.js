@@ -22,7 +22,7 @@ const ContactPage = ({ navigate }) => {
     e.preventDefault();
     
     // Send to backend API
-    fetch('https://samugatravels1.pythonanywhere.com/api/contact/', {
+    fetch('https://Tmfauwaz.pythonanywhere.com/api/contact/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
