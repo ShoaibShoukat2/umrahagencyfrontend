@@ -18,6 +18,7 @@ const RegisterPage = ({ navigate }) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isEmailExists, setIsEmailExists] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -47,9 +48,14 @@ const RegisterPage = ({ navigate }) => {
 
       if (response.ok) {
         setStep(2);
-        alert(`OTP sent to ${formData.email}. Please check your email!`);
       } else {
-        setError(data.error || 'Registration failed');
+        if (data.error && data.error.toLowerCase().includes('already exists')) {
+          setIsEmailExists(true);
+          setError(data.error);
+        } else {
+          setIsEmailExists(false);
+          setError(data.error || 'Registration failed');
+        }
       }
     } catch (error) {
       setError('Network error. Please try again.');
@@ -107,7 +113,14 @@ const RegisterPage = ({ navigate }) => {
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-                {error}
+                <p>{error}</p>
+                {isEmailExists && (
+                  <button
+                    onClick={() => navigate('login')}
+                    className="mt-2 text-sm font-bold underline text-red-800 hover:text-red-900">
+                    Click here to Login →
+                  </button>
+                )}
               </div>
             )}
 
