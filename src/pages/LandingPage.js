@@ -6,34 +6,49 @@ const LandingPage = ({ navigate }) => {
   const [categories, setCategories] = useState([]);
   const [featuredPackages, setFeaturedPackages] = useState([]);
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [backendError, setBackendError] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
+    setLoading(true);
+    setBackendError(false);
     try {
       const [categoriesData, packagesData, itemsData] = await Promise.all([
         api.getCategories(),
         api.getFeaturedPackages(),
         api.getItems()
       ]);
-      
+
       const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.results || []);
       const packages = Array.isArray(packagesData) ? packagesData : (packagesData.results || []);
       const items = Array.isArray(itemsData) ? itemsData : (itemsData.results || []);
-      
+
       setCategories(categories.filter(c => c.category_type !== 'item'));
       setFeaturedPackages(packages);
       setItems(items.slice(0, 4));
     } catch (error) {
       console.error('Error loading data:', error);
+      setBackendError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="bg-white">
       <Navbar navigate={navigate} />
+
+      {/* Backend connection error banner */}
+      {backendError && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-white text-center py-3 px-4 text-sm font-medium">
+          ⚠️ Unable to connect to server. Some content may not load.
+          <button onClick={loadData} className="ml-3 underline font-bold">Retry</button>
+        </div>
+      )}
       
       {/* Modern Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
@@ -188,7 +203,15 @@ const LandingPage = ({ navigate }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category) => (
+            {loading ? (
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="bg-gray-200 rounded-2xl h-64 animate-pulse"></div>
+              ))
+            ) : categories.length === 0 ? (
+              <div className="col-span-4 text-center py-12 text-gray-400">
+                <p className="text-lg">Categories will be available soon</p>
+              </div>
+            ) : categories.map((category) => (
               <div
                 key={category.id}
                 onClick={() => navigate('category', { category: category.category_type })}
@@ -241,7 +264,15 @@ const LandingPage = ({ navigate }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredPackages.slice(0, 6).map((pkg) => (
+            {loading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="bg-gray-200 rounded-2xl h-80 animate-pulse"></div>
+              ))
+            ) : featuredPackages.length === 0 ? (
+              <div className="col-span-3 text-center py-12 text-gray-400">
+                <p className="text-lg">Featured packages will be available soon</p>
+              </div>
+            ) : featuredPackages.slice(0, 6).map((pkg) => (
               <div
                 key={pkg.id}
                 onClick={() => navigate('package', { package: pkg })}
