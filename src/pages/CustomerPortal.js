@@ -20,7 +20,16 @@ const CustomerPortal = ({ navigate }) => {
   const [expandedBookings, setExpandedBookings] = useState({}); // Track which bookings are expanded
   const [expandedOrders, setExpandedOrders] = useState({}); // Track which shop orders are expanded
 
-  // Toggle booking expansion
+  // Reload orders when returning to portal (e.g. after shop checkout)
+  useEffect(() => {
+    if (!isLoggedIn || !email) return;
+    const updated = localStorage.getItem('orders_updated');
+    if (!updated) return;
+    localStorage.removeItem('orders_updated');
+    api.getCustomerItemOrders(email)
+      .then(data => setItemOrders(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [isLoggedIn, email]);
   const toggleBooking = (bookingId) => {
     setExpandedBookings(prev => ({
       ...prev,
@@ -43,7 +52,6 @@ const CustomerPortal = ({ navigate }) => {
       if (savedUser) {
         const userData = JSON.parse(savedUser);
         setEmail(userData.email);
-        console.log('Loading data for user:', userData.email);
         
         try {
           const [bookingsData, customerData, itemOrdersData] = await Promise.all([
@@ -52,26 +60,18 @@ const CustomerPortal = ({ navigate }) => {
             api.getCustomerItemOrders(userData.email)
           ]);
           
-          console.log('Bookings data:', bookingsData);
-          console.log('Customer data:', customerData);
-          console.log('Item orders data:', itemOrdersData);
-          
           const bookings = Array.isArray(bookingsData) ? bookingsData : (bookingsData.results || []);
           const customers = Array.isArray(customerData) ? customerData : (customerData.results || []);
-          const orders = Array.isArray(itemOrdersData) ? itemOrdersData : (itemOrdersData.results || []);
-          
-          console.log('Processed bookings:', bookings.length);
-          console.log('Bookings array:', bookings);
-          console.log('Processed orders:', orders.length);
+          const orders = Array.isArray(itemOrdersData) ? itemOrdersData : [];
           
           setBookings(bookings);
           setItemOrders(orders);
           setCustomer(customers[0] || null);
           setCustomerData(customers[0] || {});
           setIsLoggedIn(true);
+          localStorage.removeItem('orders_updated');
         } catch (error) {
           console.error('Error loading user data:', error);
-          alert('Error loading your data. Please check console for details.');
         }
       }
       setLoading(false);
@@ -86,8 +86,6 @@ const CustomerPortal = ({ navigate }) => {
       return;
     }
 
-    console.log('Logging in with email:', email);
-
     try {
       const [bookingsData, customerData, itemOrdersData] = await Promise.all([
         api.getCustomerBookings(email),
@@ -95,17 +93,10 @@ const CustomerPortal = ({ navigate }) => {
         api.getCustomerItemOrders(email)
       ]);
       
-      console.log('Login - Bookings data:', bookingsData);
-      console.log('Login - Customer data:', customerData);
-      console.log('Login - Item orders data:', itemOrdersData);
-      
       // Handle both paginated and non-paginated responses
       const bookings = Array.isArray(bookingsData) ? bookingsData : (bookingsData.results || []);
       const customers = Array.isArray(customerData) ? customerData : (customerData.results || []);
-      const orders = Array.isArray(itemOrdersData) ? itemOrdersData : (itemOrdersData.results || []);
-      
-      console.log('Login - Processed bookings:', bookings.length);
-      console.log('Login - Processed orders:', orders.length);
+      const orders = Array.isArray(itemOrdersData) ? itemOrdersData : [];
       
       if (bookings.length > 0 || customers.length > 0 || orders.length > 0) {
         setBookings(bookings);
@@ -118,7 +109,7 @@ const CustomerPortal = ({ navigate }) => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('Error loading your information. Check console for details.');
+      alert('Error loading your information. Please try again.');
     }
   };
 

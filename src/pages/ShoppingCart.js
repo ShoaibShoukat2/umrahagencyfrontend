@@ -133,6 +133,8 @@ const ShoppingCart = ({ navigate }) => {
           payment_method: paymentMethod
         }
       });
+      // Signal portal to refresh orders on next focus
+      localStorage.setItem('orders_updated', Date.now().toString());
       clearCart();
     } catch (error) {
       console.error('Checkout error:', error);

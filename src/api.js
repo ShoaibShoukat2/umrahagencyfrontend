@@ -132,7 +132,9 @@ export const api = {
   // Get customer item orders
   getCustomerItemOrders: async (email) => {
     const response = await fetch(`${API_BASE_URL}/item-orders/?email=${email}`);
-    return response.json();
+    if (!response.ok) throw new Error('Failed to fetch orders');
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results || []);
   },
 
   // Create item order
@@ -141,9 +143,11 @@ export const api = {
     
     formData.append('customer_email', orderData.customer_email);
     formData.append('items', JSON.stringify(orderData.items));
+    formData.append('shipping_name', orderData.shipping_info.name || '');
     formData.append('shipping_address', orderData.shipping_info.address);
     formData.append('shipping_unit', orderData.shipping_info.unit || '');
     formData.append('shipping_postal', orderData.shipping_info.postal_code);
+    formData.append('shipping_phone', orderData.shipping_info.phone || '');
     formData.append('total_amount', orderData.total_amount);
     
     if (orderData.payment_screenshot) {
@@ -154,6 +158,10 @@ export const api = {
       method: 'POST',
       body: formData,
     });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Failed to create order');
+    }
     return response.json();
   },
 
