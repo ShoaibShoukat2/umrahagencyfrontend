@@ -125,6 +125,9 @@ const ShoppingCart = ({ navigate }) => {
       
       console.log('Order created:', result);
       
+      // Signal portal to refresh orders on next focus
+      localStorage.setItem('orders_updated', Date.now().toString());
+      clearCart();
       // Navigate to success page
       navigate('success', {
         orderData: {
@@ -133,9 +136,6 @@ const ShoppingCart = ({ navigate }) => {
           payment_method: paymentMethod
         }
       });
-      // Signal portal to refresh orders on next focus
-      localStorage.setItem('orders_updated', Date.now().toString());
-      clearCart();
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Error placing order. Please try again.');

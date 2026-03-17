@@ -487,7 +487,7 @@ const LandingPage = ({ navigate }) => {
               Browse Packages
             </button>
             <button 
-              onClick={() => navigate('portal')}
+              onClick={() => navigate('contact')}
               className="bg-green-800 hover:bg-green-900 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all">
               Contact Us
             </button>
@@ -533,7 +533,7 @@ const LandingPage = ({ navigate }) => {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
-            <p>© 2026 Umrah Agency. All rights reserved. | UEN: 199402129H</p>
+            <p>© 2026 TM Fouzy Travel & Tours. All rights reserved. | UEN: 199402129H | License: TA00898</p>
           </div>
         </div>
       </footer>

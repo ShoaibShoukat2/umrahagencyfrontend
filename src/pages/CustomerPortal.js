@@ -20,14 +20,16 @@ const CustomerPortal = ({ navigate }) => {
   const [expandedBookings, setExpandedBookings] = useState({}); // Track which bookings are expanded
   const [expandedOrders, setExpandedOrders] = useState({}); // Track which shop orders are expanded
 
-  // Reload orders when returning to portal (e.g. after shop checkout)
+  // Reload orders when returning to portal after shop checkout
   useEffect(() => {
-    if (!isLoggedIn || !email) return;
     const updated = localStorage.getItem('orders_updated');
-    if (!updated) return;
+    if (!updated || !isLoggedIn || !email) return;
     localStorage.removeItem('orders_updated');
     api.getCustomerItemOrders(email)
-      .then(data => setItemOrders(Array.isArray(data) ? data : []))
+      .then(data => {
+        setItemOrders(Array.isArray(data) ? data : []);
+        setActiveTab('shop-orders'); // auto-switch to shop orders tab
+      })
       .catch(() => {});
   }, [isLoggedIn, email]);
   const toggleBooking = (bookingId) => {

@@ -6,12 +6,13 @@ const CategoryPage = ({ navigate, category }) => {
   const [packages, setPackages] = useState([]);
   const [allPackages, setAllPackages] = useState([]); // For counting in tabs
   const [filters, setFilters] = useState({
-    category: '', // Will be set from prop if available
+    category: '',
     month: '',
-    year: '', // Don't filter by year by default
+    year: '',
     min_price: '',
     max_price: '',
-    tags: ''
+    tags: '',
+    days: ''
   });
   const [tags, setTags] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -56,6 +57,7 @@ const CategoryPage = ({ navigate, category }) => {
       if (filters.min_price) filterParams.min_price = filters.min_price;
       if (filters.max_price) filterParams.max_price = filters.max_price;
       if (filters.tags) filterParams.tags = filters.tags;
+      if (filters.days) filterParams.duration_days = filters.days;
       
       console.log('Filter params:', filterParams);
       
@@ -147,7 +149,7 @@ const CategoryPage = ({ navigate, category }) => {
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-bold mb-4">Filter Packages</h2>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium mb-2">Category</label>
               <select value={filters.category} onChange={(e) => handleFilterChange('category', e.target.value)}
@@ -180,7 +182,7 @@ const CategoryPage = ({ navigate, category }) => {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">Min Price</label>
               <input type="number" value={filters.min_price} onChange={(e) => handleFilterChange('min_price', e.target.value)}
@@ -192,16 +194,52 @@ const CategoryPage = ({ navigate, category }) => {
               <input type="number" value={filters.max_price} onChange={(e) => handleFilterChange('max_price', e.target.value)}
                      className="w-full border rounded-lg px-3 py-2" placeholder="Max" />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Tags</label>
-              <select value={filters.tags} onChange={(e) => handleFilterChange('tags', e.target.value)}
-                      className="w-full border rounded-lg px-3 py-2">
-                <option value="">All Tags</option>
-                {tags.map(tag => (
-                  <option key={tag.id} value={tag.slug}>{tag.name}</option>
-                ))}
-              </select>
+          </div>
+
+          {/* Duration Filter */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Duration (Days)</label>
+            <div className="flex flex-wrap gap-2">
+              {['', '7', '10', '14', '21', '28'].map(d => (
+                <button
+                  key={d}
+                  onClick={() => handleFilterChange('days', d)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+                    filters.days === d
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-green-500'
+                  }`}>
+                  {d === '' ? 'All Days' : `${d} Days`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tags Filter */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Tags</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleFilterChange('tags', '')}
+                className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+                  filters.tags === ''
+                    ? 'bg-green-600 text-white border-green-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-green-500'
+                }`}>
+                All Tags
+              </button>
+              {tags.map(tag => (
+                <button
+                  key={tag.id}
+                  onClick={() => handleFilterChange('tags', filters.tags === tag.slug ? '' : tag.slug)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+                    filters.tags === tag.slug
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-green-500'
+                  }`}>
+                  {tag.name}
+                </button>
+              ))}
             </div>
           </div>
         </div>
