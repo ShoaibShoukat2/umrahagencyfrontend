@@ -10,6 +10,7 @@ const AdminDashboard = ({ navigate }) => {
     totalBookings: 0, totalRevenue: 0, pendingBookings: 0,
     totalCustomers: 0, totalPackages: 0, totalOrders: 0
   });
+  const [statsYear, setStatsYear] = useState(new Date().getFullYear());
   const [data, setData] = useState({
     bookings: [], packages: [], orders: [], categories: [], items: [], users: [], payments: []
   });
@@ -74,10 +75,19 @@ const AdminDashboard = ({ navigate }) => {
       const totalRevenue = bookingsArray.reduce((sum, b) => sum + parseFloat(b.paid_amount || 0), 0);
       const pendingBookings = bookingsArray.filter(b => b.status === 'pending').length;
 
+      // Year-filtered stats
+      const currentYear = statsYear;
+      const filteredBookings = currentYear === 'all'
+        ? bookingsArray
+        : bookingsArray.filter(b => new Date(b.created_at).getFullYear() === parseInt(currentYear));
+      const filteredRevenue = currentYear === 'all'
+        ? totalRevenue
+        : filteredBookings.reduce((sum, b) => sum + parseFloat(b.paid_amount || 0), 0);
+
       setStats({
-        totalBookings: bookingsArray.length, totalRevenue: totalRevenue,
-        pendingBookings: pendingBookings,
-        totalCustomers: new Set(bookingsArray.map(b => b.customer?.email)).size,
+        totalBookings: filteredBookings.length, totalRevenue: filteredRevenue,
+        pendingBookings: filteredBookings.filter(b => b.status === 'pending').length,
+        totalCustomers: new Set(filteredBookings.map(b => b.customer?.email)).size,
         totalPackages: packagesArray.length, totalOrders: ordersArray.length
       });
 
@@ -690,12 +700,39 @@ const AdminDashboard = ({ navigate }) => {
         {/* Overview Section */}
         {activeSection === 'overview' && (
           <div>
+            {/* Year Filter */}
+            <div className="flex flex-wrap items-center gap-3 mb-6 bg-white rounded-xl shadow p-4">
+              <span className="text-sm font-semibold text-gray-600">Stats for:</span>
+              {['all', 2024, 2025, 2026, 2027].map(y => (
+                <button
+                  key={y}
+                  onClick={() => {
+                    setStatsYear(y);
+                    const filtered = y === 'all' ? data.bookings : data.bookings.filter(b => new Date(b.created_at).getFullYear() === parseInt(y));
+                    const revenue = filtered.reduce((sum, b) => sum + parseFloat(b.paid_amount || 0), 0);
+                    setStats(prev => ({
+                      ...prev,
+                      totalBookings: filtered.length,
+                      totalRevenue: revenue,
+                      pendingBookings: filtered.filter(b => b.status === 'pending').length,
+                      totalCustomers: new Set(filtered.map(b => b.customer?.email)).size,
+                    }));
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    statsYear === y ? 'bg-purple-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-purple-100'
+                  }`}>
+                  {y === 'all' ? 'All Time' : y}
+                </button>
+              ))}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <StatCard icon="📊" title="Total Bookings" value={stats.totalBookings}
                 color="from-blue-500 to-blue-600" subtitle={`${stats.pendingBookings} pending`}
                 onClick={() => setActiveSection('bookings')} />
-              <StatCard icon="💰" title="Total Revenue" value={`$${stats.totalRevenue.toFixed(2)}`}
-                color="from-green-500 to-green-600" onClick={() => setActiveSection('bookings')} />
+              {adminUser?.is_superuser && (
+                <StatCard icon="💰" title="Total Revenue" value={`$${stats.totalRevenue.toFixed(2)}`}
+                  color="from-green-500 to-green-600" onClick={() => setActiveSection('bookings')} />
+              )}
               <StatCard icon="👥" title="Total Customers" value={stats.totalCustomers}
                 color="from-purple-500 to-purple-600" />
               <StatCard icon="📦" title="Packages" value={stats.totalPackages}
