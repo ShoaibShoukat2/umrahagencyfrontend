@@ -16,7 +16,7 @@ const AdminDashboard = ({ navigate }) => {
   });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'add-package', 'edit-package', etc.
+  const [modalType, setModalType] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [passengers, setPassengers] = useState([]);
@@ -24,6 +24,8 @@ const AdminDashboard = ({ navigate }) => {
   const [tourLeaders, setTourLeaders] = useState([]);
   const [bookingRooms, setBookingRooms] = useState([{ id: 1, sharing_type: 'double', num_adults: 1, num_children: 0, num_infants: 0, passengers: [] }]);
   const [discountCode, setDiscountCode] = useState('');
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [packageStatusFilter, setPackageStatusFilter] = useState('all'); // 'all','active','inactive','featured'
 
   useEffect(() => {
     const admin = localStorage.getItem('adminUser');
@@ -662,6 +664,14 @@ const AdminDashboard = ({ navigate }) => {
               <span className="text-xl">📄</span>
               <span>Documents</span>
             </button>
+
+            <button onClick={() => { setActiveSection('qr-tags'); setMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'qr-tags' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+              }`}>
+              <span className="text-xl">🪪</span>
+              <span>ID & Bag Tags</span>
+            </button>
           </nav>
 
         {/* Footer Buttons - Fixed */}
@@ -693,6 +703,7 @@ const AdminDashboard = ({ navigate }) => {
             {activeSection === 'users' && '👥 Manage Users'}
             {activeSection === 'customers' && '👤 Manage Customers & Tour Leaders'}
             {activeSection === 'documents' && '📄 Customer Documents'}
+            {activeSection === 'qr-tags' && '🪪 ID & Bag Tags'}
           </h1>
           <p className="text-gray-600">Welcome back, {adminUser?.username}</p>
         </div>
@@ -799,13 +810,20 @@ const AdminDashboard = ({ navigate }) => {
         {/* Bookings Section */}
         {activeSection === 'bookings' && (
           <div>
-            <div className="mb-6">
+            <div className="mb-6 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => openModal('add-booking')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2">
                 <span className="text-xl">➕</span>
                 Add Walk-in Booking
               </button>
+              <input
+                type="text"
+                placeholder="Search by name, email, booking #..."
+                value={bookingSearch}
+                onChange={e => setBookingSearch(e.target.value)}
+                className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              />
             </div>
 
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -814,8 +832,10 @@ const AdminDashboard = ({ navigate }) => {
                   <thead className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-bold">Booking #</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold">Customer</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold">Customer Name</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold">Email</th>
                       <th className="px-6 py-4 text-left text-sm font-bold">Package</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold">Pax</th>
                       <th className="px-6 py-4 text-left text-sm font-bold">Status</th>
                       <th className="px-6 py-4 text-left text-sm font-bold">Total</th>
                       <th className="px-6 py-4 text-left text-sm font-bold">Paid</th>
@@ -825,42 +845,63 @@ const AdminDashboard = ({ navigate }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {data.bookings.map(booking => (
-                      <tr key={booking.id} className="hover:bg-blue-50 transition-all">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{booking.booking_number}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{booking.customer?.email}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{booking.package_name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <select 
-                            value={booking.status}
-                            onChange={(e) => handleUpdateBookingStatus(booking.id, e.target.value)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getStatusBadge(booking.status)}`}>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${booking.total_amount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">${booking.paid_amount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">${booking.balance_amount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(booking.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                          <button
-                            onClick={() => openModal('view-booking', booking)}
-                            className="text-blue-600 hover:text-blue-800 font-medium">
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBooking(booking.id)}
-                            className="text-red-600 hover:text-red-800 font-medium">
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {data.bookings
+                      .filter(b => {
+                        if (!bookingSearch) return true;
+                        const q = bookingSearch.toLowerCase();
+                        return (
+                          b.booking_number?.toLowerCase().includes(q) ||
+                          b.contact_name?.toLowerCase().includes(q) ||
+                          b.customer?.email?.toLowerCase().includes(q) ||
+                          b.package_name?.toLowerCase().includes(q)
+                        );
+                      })
+                      .map(booking => {
+                        const totalPax = (booking.rooms || []).reduce((sum, r) =>
+                          sum + (r.num_adults || 0) + (r.num_children || 0) + (r.num_infants || 0), 0);
+                        return (
+                        <tr key={booking.id} className="hover:bg-blue-50 transition-all">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{booking.booking_number}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                            {booking.contact_name || booking.customer?.email?.split('@')[0] || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.customer?.email}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{booking.package_name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-center">
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{totalPax || '—'}</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <select
+                              value={booking.status}
+                              onChange={(e) => handleUpdateBookingStatus(booking.id, e.target.value)}
+                              className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getStatusBadge(booking.status)}`}>
+                              <option value="pending">Pending</option>
+                              <option value="confirmed">Confirmed</option>
+                              <option value="completed">Completed</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${booking.total_amount}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">${booking.paid_amount}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">${booking.balance_amount}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(booking.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <button
+                              onClick={() => openModal('view-booking', booking)}
+                              className="text-blue-600 hover:text-blue-800 font-medium">
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleDeleteBooking(booking.id)}
+                              className="text-red-600 hover:text-red-800 font-medium">
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -892,7 +933,7 @@ const AdminDashboard = ({ navigate }) => {
             </div>
 
             {/* Category Tabs */}
-            <div className="mb-6 border-b-2 border-gray-200 -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="mb-4 border-b-2 border-gray-200 -mx-4 px-4 md:mx-0 md:px-0">
               <div className="flex gap-0 overflow-x-auto scrollbar-hide">
                 <button
                   onClick={() => setActiveCategoryTab('all')}
@@ -918,13 +959,63 @@ const AdminDashboard = ({ navigate }) => {
               </div>
             </div>
 
+            {/* Status Filter */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {[
+                { key: 'all', label: 'All', color: 'bg-gray-600' },
+                { key: 'active', label: '✓ Active (Online)', color: 'bg-green-600' },
+                { key: 'inactive', label: '✗ Inactive (Hidden)', color: 'bg-red-500' },
+                { key: 'featured', label: '⭐ Featured', color: 'bg-yellow-500' },
+              ].map(f => (
+                <button key={f.key} onClick={() => setPackageStatusFilter(f.key)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold text-white transition-all ${
+                    packageStatusFilter === f.key ? f.color + ' shadow-lg scale-105' : 'bg-gray-300 text-gray-700'
+                  }`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+                      ? 'border-purple-600 text-purple-600' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}>
+                  All Packages
+                </button>
+                {data.categories.filter(cat => cat.category_type !== 'item').map(category => (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveCategoryTab(category.slug)}
+                    className={`px-4 md:px-8 py-4 font-semibold transition-all whitespace-nowrap border-b-4 text-sm md:text-base ${
+                      activeCategoryTab === category.slug 
+                        ? 'border-purple-600 text-purple-600' 
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}>
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data.packages
               .filter(pkg => activeCategoryTab === 'all' || data.categories.find(cat => cat.slug === activeCategoryTab)?.name === pkg.category_name)
+              .filter(pkg => {
+                if (packageStatusFilter === 'active') return pkg.is_active;
+                if (packageStatusFilter === 'inactive') return !pkg.is_active;
+                if (packageStatusFilter === 'featured') return pkg.is_featured;
+                return true;
+              })
               .map(pkg => (
               <div key={pkg.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all">
                 {pkg.featured_image && (
-                  <img src={pkg.featured_image} alt={pkg.name} className="w-full h-48 object-cover" />
+                  <div className="relative">
+                    <img src={pkg.featured_image} alt={pkg.name} className="w-full h-48 object-cover" />
+                    <div className="absolute top-2 left-2 flex gap-1">
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${pkg.is_active ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                        {pkg.is_active ? '● Online' : '● Hidden'}
+                      </span>
+                      {pkg.is_featured && <span className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold">⭐ Featured</span>}
+                    </div>
+                  </div>
                 )}
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-2 text-gray-900">{pkg.name}</h3>
@@ -979,6 +1070,16 @@ const AdminDashboard = ({ navigate }) => {
                       onClick={() => handleExportPassengers(pkg.id)}
                       className="bg-cyan-500 hover:bg-cyan-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
                       📥 Export
+                    </button>
+                    <button
+                      onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/rooming-list/${pkg.id}/print/`, '_blank')}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                      🪪 ID Tags
+                    </button>
+                    <button
+                      onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/bulk-tags/${pkg.id}/`, '_blank')}
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                      🧳 Bag Tags
                     </button>
                   </div>
 
@@ -1121,7 +1222,7 @@ const AdminDashboard = ({ navigate }) => {
                         {new Date(payment.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                        {payment.status === 'pending' && (
+                        {payment.status === 'pending' && adminUser?.is_superuser && (
                           <>
                             <button
                               onClick={() => handleUpdatePaymentStatus(payment.id, 'completed')}
@@ -1134,6 +1235,9 @@ const AdminDashboard = ({ navigate }) => {
                               ✗ Reject
                             </button>
                           </>
+                        )}
+                        {payment.status === 'pending' && !adminUser?.is_superuser && (
+                          <span className="text-yellow-600 font-medium text-xs">Awaiting approval</span>
                         )}
                         {payment.status === 'completed' && (
                           <span className="text-green-600 font-medium">Accepted</span>
@@ -1367,7 +1471,34 @@ const AdminDashboard = ({ navigate }) => {
         {/* Documents Section */}
         {activeSection === 'documents' && (
           <div>
-            <DocumentUploadSection customers={data.customers || []} />
+            <DocumentUploadSection customers={data.customers || []} packages={data.packages || []} />
+          </div>
+        )}
+
+        {/* QR Tags Section */}
+        {activeSection === 'qr-tags' && (
+          <div>
+            <p className="text-gray-600 mb-6">Select a package to export ID tags or Bag tags for all passengers.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.packages.filter(p => p.is_active).map(pkg => (
+                <div key={pkg.id} className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="font-bold text-lg mb-1">{pkg.name}</h3>
+                  <p className="text-sm text-gray-500 mb-4">{pkg.registered_pax || 0} passengers · {new Date(pkg.travel_date).toLocaleDateString()}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/rooming-list/${pkg.id}/print/`, '_blank')}
+                      className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold text-sm transition-all">
+                      🪪 Print ID Tags
+                    </button>
+                    <button
+                      onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/bulk-tags/${pkg.id}/`, '_blank')}
+                      className="bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold text-sm transition-all">
+                      🧳 Print Bag Tags
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

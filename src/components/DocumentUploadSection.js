@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../api';
 
-const DocumentUploadSection = ({ customers }) => {
+const DocumentUploadSection = ({ customers, packages = [] }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [groupFilter, setGroupFilter] = useState(''); // filter customers by package
   const [formData, setFormData] = useState({
     customer_id: '',
     booking_id: '',
@@ -367,20 +368,61 @@ const DocumentUploadSection = ({ customers }) => {
 
       {/* Instructions */}
       {!selectedCustomer && !showUploadForm && (
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold text-blue-900 mb-3">📌 How to Upload Documents</h3>
-          <ol className="list-decimal list-inside space-y-2 text-blue-800">
-            <li>Click "Upload Document" button above</li>
-            <li>Select the customer from the dropdown</li>
-            <li>Choose document type (Visa, Ticket, Hotel, etc.)</li>
-            <li>Enter document title and optional description</li>
-            <li>Upload the file (PDF, Image, or Document)</li>
-            <li>Mark as important if urgent</li>
-            <li>Click "Upload Document" to save</li>
-          </ol>
-          <p className="mt-4 text-sm text-blue-700">
-            💡 Customers will see these documents in their mobile app's "Document Wallet"
-          </p>
+        <div>
+          {/* Package Group Filter */}
+          {packages.length > 0 && (
+            <div className="bg-white rounded-xl shadow p-4 mb-6">
+              <p className="text-sm font-semibold text-gray-700 mb-3">Filter customers by package group:</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setGroupFilter('')}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${groupFilter === '' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100'}`}>
+                  All Customers ({customers.length})
+                </button>
+                {packages.filter(p => p.is_active).map(pkg => (
+                  <button key={pkg.id}
+                    onClick={() => setGroupFilter(pkg.name)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${groupFilter === pkg.name ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100'}`}>
+                    {pkg.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Customer Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {customers
+              .filter(c => !groupFilter || c.package_name === groupFilter || c.booking_package === groupFilter)
+              .map(customer => (
+              <div key={customer.id}
+                onClick={() => setSelectedCustomer(customer)}
+                className="bg-white rounded-xl shadow p-4 cursor-pointer hover:shadow-lg hover:border-green-400 border-2 border-transparent transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-lg">
+                    {(customer.user?.username || customer.email || '?')[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{customer.user?.username || customer.email?.split('@')[0]}</p>
+                    <p className="text-xs text-gray-500">{customer.email}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+            <h3 className="text-lg font-bold text-blue-900 mb-3">📌 How to Upload Documents</h3>
+            <ol className="list-decimal list-inside space-y-2 text-blue-800">
+              <li>Click a customer card above OR click "Upload Document"</li>
+              <li>Filter by package group to find customers faster</li>
+              <li>Choose document type (Visa, Ticket, Hotel, etc.)</li>
+              <li>Upload the file and click save</li>
+            </ol>
+            <p className="mt-4 text-sm text-blue-700">
+              💡 Customers will see these documents in their mobile app's "Document Wallet"
+            </p>
+          </div>
         </div>
       )}
     </div>
