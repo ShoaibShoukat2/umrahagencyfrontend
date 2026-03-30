@@ -975,25 +975,6 @@ const AdminDashboard = ({ navigate }) => {
                 </button>
               ))}
             </div>
-                      ? 'border-purple-600 text-purple-600' 
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}>
-                  All Packages
-                </button>
-                {data.categories.filter(cat => cat.category_type !== 'item').map(category => (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategoryTab(category.slug)}
-                    className={`px-4 md:px-8 py-4 font-semibold transition-all whitespace-nowrap border-b-4 text-sm md:text-base ${
-                      activeCategoryTab === category.slug 
-                        ? 'border-purple-600 text-purple-600' 
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}>
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data.packages
@@ -1478,27 +1459,95 @@ const AdminDashboard = ({ navigate }) => {
         {/* QR Tags Section */}
         {activeSection === 'qr-tags' && (
           <div>
-            <p className="text-gray-600 mb-6">Select a package to export ID tags or Bag tags for all passengers.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.packages.filter(p => p.is_active).map(pkg => (
-                <div key={pkg.id} className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="font-bold text-lg mb-1">{pkg.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{pkg.registered_pax || 0} passengers · {new Date(pkg.travel_date).toLocaleDateString()}</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/rooming-list/${pkg.id}/print/`, '_blank')}
-                      className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold text-sm transition-all">
-                      🪪 Print ID Tags
-                    </button>
-                    <button
-                      onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/bulk-tags/${pkg.id}/`, '_blank')}
-                      className="bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold text-sm transition-all">
-                      🧳 Print Bag Tags
-                    </button>
-                  </div>
-                </div>
-              ))}
+            {/* Info Banner */}
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 mb-8 text-white flex items-center gap-4">
+              <div className="text-5xl">🪪</div>
+              <div>
+                <h2 className="text-xl font-bold mb-1">ID & Bag Tag Generator</h2>
+                <p className="text-purple-100 text-sm">Generate and print ID tags or Bag tags for all passengers in a package. Tags include QR codes for quick scanning.</p>
+              </div>
             </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 mb-6">
+              <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-purple-100">
+                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                <span className="text-sm font-medium text-gray-700">🪪 ID Tag — Name, Booking #, Emergency Contact, QR</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-orange-100">
+                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <span className="text-sm font-medium text-gray-700">🧳 Bag Tag — Name, Room #, Hotel, Package QR</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-blue-100">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <span className="text-sm font-medium text-gray-700">📋 Rooming List — Full PDF with all room assignments</span>
+              </div>
+            </div>
+
+            {/* Package Cards */}
+            {data.packages.filter(p => p.is_active).length === 0 ? (
+              <div className="bg-white rounded-2xl shadow p-12 text-center">
+                <div className="text-6xl mb-4">📦</div>
+                <p className="text-gray-500 text-lg">No active packages found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {data.packages.filter(p => p.is_active).map(pkg => (
+                  <div key={pkg.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all border border-gray-100">
+                    {/* Card Header */}
+                    <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-4">
+                      {pkg.featured_image && (
+                        <img src={pkg.featured_image} alt={pkg.name} className="w-full h-28 object-cover rounded-lg mb-3 opacity-80" />
+                      )}
+                      <h3 className="font-bold text-white text-base leading-tight">{pkg.name}</h3>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-xs text-gray-300">📅 {new Date(pkg.travel_date).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Active</span>
+                      </div>
+                    </div>
+
+                    {/* Passenger Count */}
+                    <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">👥</span>
+                        <div>
+                          <p className="text-xs text-gray-500">Registered Passengers</p>
+                          <p className="font-bold text-gray-900 text-lg">
+                            {data.bookings.filter(b => b.package_name === pkg.name).reduce((sum, b) => sum + (b.rooms?.reduce((rs, r) => rs + (r.passengers?.length || 0), 0) || 0), 0) || '—'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">📋</span>
+                        <div>
+                          <p className="text-xs text-gray-500">Bookings</p>
+                          <p className="font-bold text-gray-900 text-lg">{data.bookings.filter(b => b.package_name === pkg.name).length}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="p-4 space-y-2">
+                      <button
+                        onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/rooming-list/${pkg.id}/print/`, '_blank')}
+                        className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
+                        <span>🪪</span> Print ID Tags (All Passengers)
+                      </button>
+                      <button
+                        onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/bulk-tags/${pkg.id}/`, '_blank')}
+                        className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
+                        <span>🧳</span> Print Bag Tags (All Passengers)
+                      </button>
+                      <button
+                        onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/rooming-list/${pkg.id}/`, '_blank')}
+                        className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
+                        <span>📋</span> View Rooming List (PDF)
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
