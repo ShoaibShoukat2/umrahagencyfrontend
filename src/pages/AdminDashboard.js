@@ -57,7 +57,7 @@ const AdminDashboard = ({ navigate }) => {
       
       const [bookings, packages, orders, categories, items, users, payments, tourLeadersData, customersData] = await Promise.all([
         adminApi.getBookings(), adminApi.getAllPackages(), adminApi.getOrders(),
-        api.getCategories(), api.getItems(), adminApi.getUsers(), adminApi.getPayments(),
+        adminApi.getAllCategories(), api.getItems(), adminApi.getUsers(), adminApi.getPayments(),
         adminApi.getTourLeaders(), adminApi.getCustomers()
       ]);
 
