@@ -314,6 +314,26 @@ const AdminDashboard = ({ navigate }) => {
           category: parseInt(formData.category) || (selectedItem.category?.id ?? selectedItem.category),
         };
         await adminApi.updatePackage(selectedItem.id, payload);
+        // Save room prices if any were set
+        const roomTypes = ['single', 'double', 'triple', 'quad', 'child_no_bed', 'infant'];
+        for (const key of roomTypes) {
+          const price = formData[`room_price_${key}`];
+          if (price !== undefined && price !== '') {
+            const avail = formData[`room_avail_${key}`] ?? true;
+            const existing = formData.room_prices?.find(r => r.sharing_type === key);
+            if (existing) {
+              await fetch(`${process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api'}/admin/packages/${selectedItem.id}/update_room_price/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sharing_type: key, price: parseFloat(price), available: avail })
+              });
+            } else {
+              await fetch(`${process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api'}/admin/packages/${selectedItem.id}/update_room_price/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sharing_type: key, price: parseFloat(price), available: avail })
+              });
+            }
+          }
+        }
         showSuccess('Package updated successfully!');
       } else if (modalType === 'add-category') {
         await adminApi.createCategory(formData);
@@ -1101,27 +1121,37 @@ const AdminDashboard = ({ navigate }) => {
                     <button
                       onClick={async () => {
                         try {
-                          // Fetch full package detail (includes description etc.)
                           const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api'}/admin/packages/${pkg.id}/`);
                           const fullPkg = await res.json();
-                          // Normalize category to ID
                           const categoryId = fullPkg.category?.id ?? fullPkg.category ?? '';
-                          openModal('edit-package', {
-                            ...fullPkg,
-                            category: categoryId,
-                          });
+                          openModal('edit-package', { ...fullPkg, category: categoryId });
                         } catch {
                           const categoryId = data.categories.find(c => c.name === pkg.category_name)?.id || '';
                           openModal('edit-package', {...pkg, category: categoryId});
                         }
                       }}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
-                      Edit
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api'}/admin/packages/${pkg.id}/`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ is_active: !pkg.is_active })
+                          });
+                          if (res.ok) { showSuccess(`Package ${pkg.is_active ? 'hidden' : 'published'}!`); loadAllData(); }
+                          else showError(new Error('Failed to update status'));
+                        } catch(e) { showError(e); }
+                      }}
+                      className={`px-3 py-2 rounded-lg font-medium transition-all text-white text-sm ${pkg.is_active ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}>
+                      {pkg.is_active ? '🙈 Hide' : '👁 Show'}
                     </button>
                     <button
                       onClick={() => handleDeletePackage(pkg.id)}
                       className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
-                      Delete
+                      🗑 Delete
                     </button>
                   </div>
                 </div>
@@ -1867,10 +1897,13 @@ const AdminDashboard = ({ navigate }) => {
                         <label htmlFor="is_featured" className="text-sm font-medium text-gray-700">Featured Package</label>
                       </div>
                       <div className="flex items-center gap-3">
-                        <input type="checkbox" id="pkg_is_active" checked={formData.is_active !== false} 
+                        <input type="checkbox" id="pkg_is_active" 
+                          checked={formData.is_active === true || formData.is_active === undefined} 
                           onChange={(e) => handleFormChange('is_active', e.target.checked)}
                           className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
-                        <label htmlFor="pkg_is_active" className="text-sm font-medium text-gray-700">Active</label>
+                        <label htmlFor="pkg_is_active" className="text-sm font-medium text-gray-700">
+                          Active (visible on website)
+                        </label>
                       </div>
                     </div>
 
@@ -1922,6 +1955,49 @@ const AdminDashboard = ({ navigate }) => {
                         ))}
                       </select>
                       <p className="text-xs text-gray-600 mt-2">Select a customer marked as tour leader. Manage tour leaders in the Customers section.</p>
+                    </div>
+
+                    {/* Room Prices */}
+                    <div className="bg-yellow-50 border-2 border-yellow-200 p-4 rounded-lg">
+                      <h4 className="font-bold text-gray-900 mb-3">💰 Room Prices (per person)</h4>
+                      <div className="space-y-3">
+                        {[
+                          { key: 'single', label: 'Single (1 pax)' },
+                          { key: 'double', label: 'Double Sharing (2 pax)' },
+                          { key: 'triple', label: 'Triple Sharing (3 pax)' },
+                          { key: 'quad', label: 'Quad Sharing (4 pax)' },
+                          { key: 'child_no_bed', label: 'Child (No Bed)' },
+                          { key: 'infant', label: 'Infant' },
+                        ].map(({ key, label }) => {
+                          const existing = formData.room_prices?.find(r => r.sharing_type === key);
+                          const priceKey = `room_price_${key}`;
+                          const availKey = `room_avail_${key}`;
+                          return (
+                            <div key={key} className="flex items-center gap-3">
+                              <div className="w-40 text-sm font-medium text-gray-700">{label}</div>
+                              <input
+                                type="number"
+                                placeholder="Price $"
+                                min="0"
+                                step="0.01"
+                                value={formData[priceKey] ?? (existing?.price || '')}
+                                onChange={(e) => handleFormChange(priceKey, e.target.value)}
+                                className="flex-1 border-2 border-gray-300 rounded-lg px-3 py-2 focus:border-yellow-500 text-sm"
+                              />
+                              <label className="flex items-center gap-1 text-sm text-gray-600 whitespace-nowrap">
+                                <input
+                                  type="checkbox"
+                                  checked={formData[availKey] !== undefined ? formData[availKey] : (existing?.available ?? false)}
+                                  onChange={(e) => handleFormChange(availKey, e.target.checked)}
+                                  className="w-4 h-4"
+                                />
+                                Available
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Leave price empty to skip that room type.</p>
                     </div>
                   </>
                 )}

@@ -300,6 +300,13 @@ export const adminApi = {
     return response.ok;
   },
 
+  // Get ALL categories including inactive (for admin)
+  getAllCategories: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/categories/`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results || []);
+  },
+
   // Category CRUD
   createCategory: async (categoryData) => {
     const response = await fetch(`${API_BASE_URL}/admin/categories/`, {
