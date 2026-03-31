@@ -273,8 +273,15 @@ export const adminApi = {
       body: JSON.stringify(packageData)
     });
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(formatApiError(errorData));
+      let errorMsg = `Server error (${response.status})`;
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errorData = await response.json();
+          errorMsg = formatApiError(errorData);
+        }
+      } catch (_) {}
+      throw new Error(errorMsg);
     }
     return response.json();
   },
