@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { api, adminApi } from '../api';
 import DocumentUploadSection from '../components/DocumentUploadSection';
 
@@ -6,6 +6,7 @@ const AdminDashboard = ({ navigate }) => {
   const [adminUser, setAdminUser] = useState(null);
   const [activeSection, setActiveSection] = useState('overview');
   const [activeCategoryTab, setActiveCategoryTab] = useState('all');
+  const [errorMsg, setErrorMsg] = useState(''); // global error display
   const [stats, setStats] = useState({
     totalBookings: 0, totalRevenue: 0, pendingBookings: 0,
     totalCustomers: 0, totalPackages: 0, totalOrders: 0
@@ -26,6 +27,17 @@ const AdminDashboard = ({ navigate }) => {
   const [discountCode, setDiscountCode] = useState('');
   const [bookingSearch, setBookingSearch] = useState('');
   const [packageStatusFilter, setPackageStatusFilter] = useState('all'); // 'all','active','inactive','featured'
+
+  const showError = (err) => {
+    const msg = err?.message || String(err) || 'Something went wrong';
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(''), 8000);
+  };
+
+  const showSuccess = (msg) => {
+    setErrorMsg('✅ ' + msg);
+    setTimeout(() => setErrorMsg(''), 4000);
+  };
 
   useEffect(() => {
     const admin = localStorage.getItem('adminUser');
@@ -104,7 +116,7 @@ const AdminDashboard = ({ navigate }) => {
       console.log('Data loaded successfully!');
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Error loading data: ' + error.message);
+      showError(error);
     } finally {
       setLoading(false);
     }
@@ -118,22 +130,22 @@ const AdminDashboard = ({ navigate }) => {
   const handleUpdateBookingStatus = async (bookingId, newStatus) => {
     try {
       await adminApi.updateBookingStatus(bookingId, newStatus);
-      alert('Booking status updated successfully!');
+      showSuccess('Booking status updated!');
       loadAllData(); // Reload data
     } catch (error) {
       console.error('Error updating booking status:', error);
-      alert('Failed to update booking status');
+      showError(new Error('Failed to update booking status'));
     }
   };
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
       await adminApi.updateOrderStatus(orderId, newStatus);
-      alert('Order status updated successfully!');
+      showSuccess('Order status updated!');
       loadAllData(); // Reload data
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Failed to update order status');
+      showError(new Error('Failed to update order status'));
     }
   };
 
@@ -144,7 +156,7 @@ const AdminDashboard = ({ navigate }) => {
       loadAllData(); // Reload data
     } catch (error) {
       console.error('Error updating payment status:', error);
-      alert('Failed to update payment status');
+      showError(new Error('Failed to update payment status'));
     }
   };
 
@@ -152,11 +164,11 @@ const AdminDashboard = ({ navigate }) => {
     if (!window.confirm('Are you sure you want to delete this booking?')) return;
     try {
       await adminApi.deleteBooking(bookingId);
-      alert('Booking deleted successfully!');
+      showSuccess('Booking deleted!');
       loadAllData();
     } catch (error) {
       console.error('Error deleting booking:', error);
-      alert('Failed to delete booking');
+      showError(new Error('Failed to delete booking'));
     }
   };
 
@@ -164,11 +176,11 @@ const AdminDashboard = ({ navigate }) => {
     if (!window.confirm('Are you sure you want to delete this order?')) return;
     try {
       await adminApi.deleteOrder(orderId);
-      alert('Order deleted successfully!');
+      showSuccess('Order deleted!');
       loadAllData();
     } catch (error) {
       console.error('Error deleting order:', error);
-      alert('Failed to delete order');
+      showError(new Error('Failed to delete order'));
     }
   };
 
@@ -261,7 +273,7 @@ const AdminDashboard = ({ navigate }) => {
 
   const applyDiscount = async () => {
     if (!discountCode) {
-      alert('Please enter a discount code');
+      showError(new Error('Please enter a discount code'));
       return;
     }
     try {
@@ -270,7 +282,7 @@ const AdminDashboard = ({ navigate }) => {
         // setDiscountAmount(result.discount_amount);
         alert(`Discount applied: $${result.discount_amount}`);
       } else {
-        alert(result.message || 'Invalid discount code');
+        showError(new Error(result.message || 'Invalid discount code'));
         // setDiscountAmount(0);
       }
     } catch (error) {
@@ -289,27 +301,33 @@ const AdminDashboard = ({ navigate }) => {
     try {
       if (modalType === 'add-package') {
         await adminApi.createPackage(formData);
-        alert('Package created successfully!');
+        showSuccess('Package created successfully!');
       } else if (modalType === 'edit-package') {
         console.log('Editing package with ID:', selectedItem.id);
         console.log('Form data:', formData);
-        await adminApi.updatePackage(selectedItem.id, formData);
-        alert('Package updated successfully!');
+        // Ensure required fields have defaults
+        const payload = {
+          ...formData,
+          description: formData.description || formData.short_description || selectedItem.description || '',
+          min_deposit_amount: formData.min_deposit_amount || selectedItem.min_deposit_amount || 100,
+        };
+        await adminApi.updatePackage(selectedItem.id, payload);
+        showSuccess('Package updated successfully!');
       } else if (modalType === 'add-category') {
         await adminApi.createCategory(formData);
-        alert('Category created successfully!');
+        showSuccess('Category created successfully!');
       } else if (modalType === 'edit-category') {
         await adminApi.updateCategory(selectedItem.id, formData);
-        alert('Category updated successfully!');
+        showSuccess('Category updated successfully!');
       } else if (modalType === 'add-item') {
         await adminApi.createItem(formData);
-        alert('Item created successfully!');
+        showSuccess('Item created successfully!');
       } else if (modalType === 'edit-item') {
         await adminApi.updateItem(selectedItem.id, formData);
-        alert('Item updated successfully!');
+        showSuccess('Item updated successfully!');
       } else if (modalType === 'add-user') {
         await adminApi.createUser(formData);
-        alert('User created successfully!');
+        showSuccess('User created successfully!');
       } else if (modalType === 'add-booking') {
         await handleCreateWalkInBooking();
         return; // Return early as handleCreateWalkInBooking handles closing
@@ -321,7 +339,7 @@ const AdminDashboard = ({ navigate }) => {
       loadAllData();
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Error: ' + error.message);
+      showError(error);
     }
   };
 
@@ -332,7 +350,7 @@ const AdminDashboard = ({ navigate }) => {
           !formData.contact_phone || !formData.num_adults || !formData.payment_amount ||
           !formData.passenger_name || !formData.passenger_dob || !formData.passenger_gender ||
           !formData.passenger_phone || !formData.passenger_passport || !formData.passenger_passport_expiry) {
-        alert('Please fill in all required fields including passenger details');
+        showError(new Error('Please fill in all required fields including passenger details'));
         return;
       }
 
@@ -377,15 +395,15 @@ const AdminDashboard = ({ navigate }) => {
       const response = await api.createBooking(bookingData);
       
       if (response.error) {
-        alert('Error: ' + response.error);
+        showError(new Error(response.error));
       } else {
-        alert('Walk-in booking created successfully! Booking #: ' + response.booking_number);
+        showSuccess('Walk-in booking created! Booking #: ' + response.booking_number);
         closeModal();
         loadAllData();
       }
     } catch (error) {
       console.error('Error creating walk-in booking:', error);
-      alert('Failed to create booking. Please try again.');
+      showError(new Error('Failed to create booking. Please try again.'));
     }
   };
 
@@ -396,17 +414,17 @@ const AdminDashboard = ({ navigate }) => {
       console.log('Booking Search:', formData.booking_search);
       
       if (!formData.booking_search || formData.booking_search.length < 5) {
-        alert('Please enter the last 5 digits of the booking number');
+        showError(new Error('Please enter the last 5 digits of the booking number'));
         return;
       }
 
       if (!formData.booking_id || formData.booking_id === '') {
-        alert('Please select a booking from the dropdown. Current value: ' + formData.booking_id);
+        showError(new Error('Please select a booking from the dropdown'));
         return;
       }
 
       if (!formData.payment_amount || !formData.payment_method) {
-        alert('Please fill in payment amount and method');
+        showError(new Error('Please fill in payment amount and method'));
         return;
       }
 
@@ -417,7 +435,7 @@ const AdminDashboard = ({ navigate }) => {
       console.log('Found Booking:', booking);
       
       if (!booking) {
-        alert('Booking not found with ID: ' + bookingId);
+        showError(new Error('Booking not found. Please search again.'));
         return;
       }
 
@@ -429,12 +447,12 @@ const AdminDashboard = ({ navigate }) => {
         remarks: formData.payment_remarks || ''
       }, email);
 
-      alert('Manual payment added successfully!');
+      showSuccess('Payment added successfully!');
       closeModal();
       loadAllData();
     } catch (error) {
       console.error('Error adding manual payment:', error);
-      alert('Failed to add payment: ' + (error.message || 'Unknown error'));
+      showError(error);
     }
   };
 
@@ -442,11 +460,11 @@ const AdminDashboard = ({ navigate }) => {
     if (!window.confirm('Are you sure you want to delete this package?')) return;
     try {
       await adminApi.deletePackage(packageId);
-      alert('Package deleted successfully!');
+      showSuccess('Package deleted!');
       loadAllData();
     } catch (error) {
       console.error('Error deleting package:', error);
-      alert('Failed to delete package');
+      showError(new Error('Failed to delete package'));
     }
   };
 
@@ -454,11 +472,11 @@ const AdminDashboard = ({ navigate }) => {
     if (!window.confirm('Are you sure you want to delete this category?')) return;
     try {
       await adminApi.deleteCategory(categoryId);
-      alert('Category deleted successfully!');
+      showSuccess('Category deleted!');
       loadAllData();
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('Failed to delete category');
+      showError(new Error('Failed to delete category'));
     }
   };
 
@@ -466,11 +484,11 @@ const AdminDashboard = ({ navigate }) => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
       await adminApi.deleteItem(itemId);
-      alert('Item deleted successfully!');
+      showSuccess('Item deleted!');
       loadAllData();
     } catch (error) {
       console.error('Error deleting item:', error);
-      alert('Failed to delete item');
+      showError(new Error('Failed to delete item'));
     }
   };
 
@@ -484,11 +502,11 @@ const AdminDashboard = ({ navigate }) => {
     
     try {
       const result = await adminApi.importPackages(file);
-      alert(result.message || 'Packages imported successfully!');
+      showSuccess(result.message || 'Packages imported successfully!');
       loadAllData();
     } catch (error) {
       console.error('Error importing packages:', error);
-      alert('Failed to import packages');
+      showError(new Error('Failed to import packages'));
     }
   };
 
@@ -501,7 +519,7 @@ const AdminDashboard = ({ navigate }) => {
       setShowModal(true);
     } catch (error) {
       console.error('Error loading passengers:', error);
-      alert('Failed to load passengers');
+      showError(new Error('Failed to load passengers'));
     }
   };
 
@@ -546,6 +564,19 @@ const AdminDashboard = ({ navigate }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Error / Success Toast */}
+      {errorMsg && (
+        <div className={`fixed top-4 right-4 z-[9999] max-w-sm w-full shadow-2xl rounded-xl p-4 flex items-start gap-3 animate-slide-down ${
+          errorMsg.startsWith('✅') ? 'bg-green-600' : 'bg-red-600'
+        } text-white`}>
+          <span className="text-2xl flex-shrink-0">{errorMsg.startsWith('✅') ? '✅' : '❌'}</span>
+          <div className="flex-1">
+            <p className="font-bold text-sm mb-0.5">{errorMsg.startsWith('✅') ? 'Success' : 'Error'}</p>
+            <p className="text-sm text-white/90 whitespace-pre-line">{errorMsg.replace('✅ ', '')}</p>
+          </div>
+          <button onClick={() => setErrorMsg('')} className="text-white/70 hover:text-white text-lg leading-none">✕</button>
+        </div>
+      )}
       {/* Mobile Menu Button */}
       <button 
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -1422,7 +1453,7 @@ const AdminDashboard = ({ navigate }) => {
                                   loadAllData();
                                 } catch (error) {
                                   console.error('Error toggling tour leader:', error);
-                                  alert('Failed to update tour leader status');
+                                  showError(new Error('Failed to update tour leader status'));
                                 }
                               }}
                               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -1787,12 +1818,19 @@ const AdminDashboard = ({ navigate }) => {
                           className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" />
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Maximum Capacity (Target Seats) *</label>
-                      <input type="number" placeholder="50" value={formData.max_capacity || ''} 
-                        onChange={(e) => handleFormChange('max_capacity', e.target.value)}
-                        className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" />
-                      <p className="text-xs text-gray-500 mt-1">Total number of passengers this package can accommodate</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Maximum Capacity *</label>
+                        <input type="number" placeholder="50" value={formData.max_capacity || ''} 
+                          onChange={(e) => handleFormChange('max_capacity', e.target.value)}
+                          className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Min Deposit ($) *</label>
+                        <input type="number" placeholder="100" value={formData.min_deposit_amount || ''} 
+                          onChange={(e) => handleFormChange('min_deposit_amount', e.target.value)}
+                          className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" />
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-center gap-3">

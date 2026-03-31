@@ -160,7 +160,7 @@ export const api = {
     });
     if (!response.ok) {
       const err = await response.json();
-      throw new Error(err.error || 'Failed to create order');
+      throw new Error(formatApiError(err));
     }
     return response.json();
   },
@@ -178,7 +178,21 @@ export const api = {
   }
 };
 
-// Admin APIs
+// Helper — converts Django validation errors to readable string
+const formatApiError = (errorData) => {
+  if (!errorData) return 'Unknown error occurred';
+  if (typeof errorData === 'string') return errorData;
+  if (errorData.error) return errorData.error;
+  if (errorData.detail) return errorData.detail;
+  // Django field errors: { field: ['msg1', 'msg2'], ... }
+  const lines = [];
+  Object.entries(errorData).forEach(([field, msgs]) => {
+    const label = field === 'non_field_errors' ? '' : `${field}: `;
+    const msg = Array.isArray(msgs) ? msgs.join(', ') : String(msgs);
+    lines.push(`${label}${msg}`);
+  });
+  return lines.join('\n') || 'Request failed';
+};
 export const adminApi = {
   // Admin Login
   login: async (username, password) => {
@@ -189,7 +203,7 @@ export const adminApi = {
     });
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Login failed');
+      throw new Error(formatApiError(error));
     }
     return response.json();
   },
@@ -263,7 +277,7 @@ export const adminApi = {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Update failed:', errorData);
-      throw new Error(errorData.error || 'Failed to update package');
+      throw new Error(formatApiError(errorData));
     }
     
     const result = await response.json();
