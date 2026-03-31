@@ -256,6 +256,13 @@ export const adminApi = {
     return response.ok;
   },
 
+  // Get ALL packages including inactive (for admin)
+  getAllPackages: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/packages/`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results || []);
+  },
+
   // Package CRUD
   createPackage: async (packageData) => {
     const response = await fetch(`${API_BASE_URL}/admin/packages/`, {
