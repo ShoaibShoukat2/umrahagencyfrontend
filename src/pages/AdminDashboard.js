@@ -549,6 +549,45 @@ const AdminDashboard = ({ navigate }) => {
     adminApi.exportPackagePassengers(packageId);
   };
 
+  const handlePrintTags = async (packageId, tagType) => {
+    try {
+      const API = process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api';
+      const res = await fetch(`${API}/qr/bulk-tags/${packageId}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tag_type: tagType })
+      });
+      if (!res.ok) { showError(new Error('Failed to generate tags')); return; }
+      const data = await res.json();
+      if (!data.tags || data.tags.length === 0) { showError(new Error('No passengers found for this package')); return; }
+
+      // Build printable HTML page
+      const tagField = tagType === 'id' ? 'id_tag' : 'bag_tag';
+      const title = tagType === 'id' ? 'ID Tags' : 'Bag Tags';
+      const tagsHtml = data.tags.map(t => `
+        <div style="display:inline-block;margin:8px;border:1px solid #ccc;border-radius:8px;padding:8px;page-break-inside:avoid;text-align:center;width:280px">
+          <p style="font-weight:bold;margin:4px 0">${t.customer_name}</p>
+          <p style="font-size:12px;color:#555;margin:2px 0">Booking: ${t.booking_number}</p>
+          ${t[tagField] ? `<img src="${t[tagField]}" style="width:260px;height:auto;margin-top:6px" />` : '<p style="color:red">No tag generated</p>'}
+        </div>
+      `).join('');
+
+      const html = `<!DOCTYPE html><html><head><title>${title} - ${data.package_name}</title>
+        <style>body{font-family:Arial,sans-serif;padding:16px} @media print{button{display:none}}</style>
+      </head><body>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h2 style="margin:0">${title} — ${data.package_name} (${data.total_customers} passengers)</h2>
+          <button onclick="window.print()" style="padding:8px 20px;background:#2e7d32;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨 Print</button>
+        </div>
+        <div>${tagsHtml}</div>
+      </body></html>`;
+
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (e) { showError(e); }
+  };
+
   const StatCard = ({ icon, title, value, color, subtitle, onClick }) => (
     <div onClick={onClick}
       className={`bg-gradient-to-br ${color} rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-all cursor-pointer`}>
