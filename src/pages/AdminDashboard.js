@@ -303,13 +303,15 @@ const AdminDashboard = ({ navigate }) => {
         await adminApi.createPackage(formData);
         showSuccess('Package created successfully!');
       } else if (modalType === 'edit-package') {
-        console.log('Editing package with ID:', selectedItem.id);
-        console.log('Form data:', formData);
-        // Ensure required fields have defaults
         const payload = {
           ...formData,
           description: formData.description || formData.short_description || selectedItem.description || '',
           min_deposit_amount: formData.min_deposit_amount || selectedItem.min_deposit_amount || 100,
+          // URLFields — send null if empty, not empty string
+          featured_image: formData.featured_image || null,
+          hotel_image: formData.hotel_image || null,
+          // category must be ID
+          category: formData.category || selectedItem.category,
         };
         await adminApi.updatePackage(selectedItem.id, payload);
         showSuccess('Package updated successfully!');
