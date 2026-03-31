@@ -310,8 +310,8 @@ const AdminDashboard = ({ navigate }) => {
           // URLFields — send null if empty, not empty string
           featured_image: formData.featured_image || null,
           hotel_image: formData.hotel_image || null,
-          // category must be ID
-          category: formData.category || selectedItem.category,
+          // category must be ID (number)
+          category: parseInt(formData.category) || (selectedItem.category?.id ?? selectedItem.category),
         };
         await adminApi.updatePackage(selectedItem.id, payload);
         showSuccess('Package updated successfully!');
@@ -1104,13 +1104,15 @@ const AdminDashboard = ({ navigate }) => {
                           // Fetch full package detail (includes description etc.)
                           const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api'}/admin/packages/${pkg.id}/`);
                           const fullPkg = await res.json();
+                          // Normalize category to ID
+                          const categoryId = fullPkg.category?.id ?? fullPkg.category ?? '';
                           openModal('edit-package', {
                             ...fullPkg,
-                            category: fullPkg.category?.id || fullPkg.category,
+                            category: categoryId,
                           });
                         } catch {
-                          // fallback to list data
-                          openModal('edit-package', {...pkg, category: data.categories.find(c => c.name === pkg.category_name)?.id || pkg.category});
+                          const categoryId = data.categories.find(c => c.name === pkg.category_name)?.id || '';
+                          openModal('edit-package', {...pkg, category: categoryId});
                         }
                       }}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
@@ -1785,7 +1787,7 @@ const AdminDashboard = ({ navigate }) => {
                   <>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
-                      <select value={formData.category || ''} onChange={(e) => handleFormChange('category', e.target.value)}
+                      <select value={String(formData.category || '')} onChange={(e) => handleFormChange('category', e.target.value)}
                         className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
                         <option value="">Select Category</option>
                         {data.categories.map(cat => (
