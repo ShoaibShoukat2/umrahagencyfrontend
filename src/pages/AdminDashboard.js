@@ -1150,7 +1150,7 @@ const AdminDashboard = ({ navigate }) => {
                       🪪 ID Tags
                     </button>
                     <button
-                      onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/bulk-tags/${pkg.id}/`, '_blank')}
+                      onClick={() => handlePrintTags(pkg.id, 'bag')}
                       className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
                       🧳 Bag Tags
                     </button>
@@ -1651,7 +1651,7 @@ const AdminDashboard = ({ navigate }) => {
                         <span>🪪</span> Print ID Tags (All Passengers)
                       </button>
                       <button
-                        onClick={() => window.open(`https://Tmfauwaz.pythonanywhere.com/api/qr/bulk-tags/${pkg.id}/`, '_blank')}
+                        onClick={() => handlePrintTags(pkg.id, 'bag')}
                         className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
                         <span>🧳</span> Print Bag Tags (All Passengers)
                       </button>
