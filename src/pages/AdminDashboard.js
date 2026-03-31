@@ -1097,7 +1097,7 @@ const AdminDashboard = ({ navigate }) => {
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() => openModal('edit-package', pkg)}
+                      onClick={() => openModal('edit-package', {...pkg, category: data.categories.find(c => c.name === pkg.category_name)?.id || pkg.category})}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
                       Edit
                     </button>
@@ -1768,6 +1768,16 @@ const AdminDashboard = ({ navigate }) => {
               <div className="space-y-4">
                 {modalType.includes('package') && (
                   <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
+                      <select value={formData.category || ''} onChange={(e) => handleFormChange('category', e.target.value)}
+                        className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
+                        <option value="">Select Category</option>
+                        {data.categories.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </div>
                     <input type="text" placeholder="Package Name *" value={formData.name || ''} 
                       onChange={(e) => handleFormChange('name', e.target.value)}
                       className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200" />

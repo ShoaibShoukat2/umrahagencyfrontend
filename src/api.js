@@ -267,22 +267,16 @@ export const adminApi = {
   },
 
   updatePackage: async (packageId, packageData) => {
-    console.log('Updating package:', packageId, packageData);
     const response = await fetch(`${API_BASE_URL}/admin/packages/${packageId}/`, {
-      method: 'PUT',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(packageData)
     });
-    
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Update failed:', errorData);
       throw new Error(formatApiError(errorData));
     }
-    
-    const result = await response.json();
-    console.log('Update successful:', result);
-    return result;
+    return response.json();
   },
 
   deletePackage: async (packageId) => {
