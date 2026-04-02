@@ -589,23 +589,36 @@ const AdminDashboard = ({ navigate }) => {
           <div style="background:#c8a84b;color:#1a0f00;text-align:center;font-size:11px;font-weight:900;padding:6px;margin-top:8px;letter-spacing:.5px;text-transform:uppercase">${data.package_name}</div>
         </div>
       ` : `
-        <div style="width:220px;background:#fff;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.15);overflow:hidden;page-break-inside:avoid;display:inline-block;margin:8px;vertical-align:top">
-          <div style="padding:10px 10px 6px;border-bottom:3px solid #1b5e20">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:26px">🕌</span>
-              <div>
-                <div style="font-size:14px;font-weight:900;color:#1b5e20">TM FOUZY</div>
-                <div style="font-size:8px;color:#555;font-weight:600">TRAVEL &amp; TOURS PTE LTD</div>
+        <div style="width:320px;height:200px;background:#fff;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,.2);overflow:hidden;page-break-inside:avoid;display:inline-block;margin:10px;vertical-align:top;position:relative">
+          <!-- Yellow left strip -->
+          <div style="position:absolute;left:0;top:0;bottom:0;width:28px;background:#c8a84b"></div>
+          <!-- Main content -->
+          <div style="margin-left:28px;display:flex;height:100%">
+            <!-- Left: photo + name + address -->
+            <div style="flex:1;padding:10px 8px;display:flex;flex-direction:column;justify-content:center">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="width:52px;height:52px;border-radius:50%;border:2px solid #c8a84b;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👤</div>
+                <div>
+                  <div style="font-size:11px;font-weight:900;color:#111;text-transform:uppercase;line-height:1.3">${t.customer_name}</div>
+                  <div style="font-size:9px;color:#555;margin-top:2px">Booking: ${t.booking_number}</div>
+                </div>
+              </div>
+              <div style="font-size:8px;color:#555;line-height:1.4">390 Victoria Street Singapore 188061</div>
+              <div style="font-size:8px;color:#555">Tel: +65 6294 8044</div>
+              <div style="font-size:8px;color:#1b5e20;font-weight:700;margin-top:3px">${data.package_name}</div>
+            </div>
+            <!-- Right: logo + flag -->
+            <div style="width:100px;border-left:1px solid #eee;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+              <span style="font-size:28px">🕌</span>
+              <div style="font-size:12px;font-weight:900;color:#1b5e20;letter-spacing:.5px;text-align:center">TM FOUZY</div>
+              <div style="font-size:7px;color:#555;font-weight:600;text-align:center">TRAVEL &amp; TOURS PTE LTD</div>
+              <div style="font-size:8px;color:#1b5e20;direction:rtl;text-align:center">شركة ت.م فوزي</div>
+              <div style="display:flex;align-items:center;gap:3px;margin-top:4px">
+                <span style="font-size:16px">🇸🇬</span>
+                <span style="font-size:8px;direction:rtl;color:#333">سنغافورة</span>
               </div>
             </div>
           </div>
-          <div style="padding:10px">
-            <div style="font-size:13px;font-weight:900;color:#111;text-transform:uppercase">${t.customer_name}</div>
-            <div style="font-size:10px;color:#555;margin-top:3px">Booking: ${t.booking_number}</div>
-            <div style="font-size:10px;color:#1b5e20;font-weight:700;margin-top:3px">${data.package_name}</div>
-            ${t[tagField] ? `<img src="${t[tagField]}" style="display:block;width:90px;margin:8px auto" />` : ''}
-          </div>
-          <div style="background:#1b5e20;color:#fff;text-align:center;font-size:11px;font-weight:900;padding:6px;letter-spacing:.5px">🧳 BAGGAGE TAG</div>
         </div>
       `).join('');
 
