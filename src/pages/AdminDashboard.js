@@ -639,25 +639,8 @@ const AdminDashboard = ({ navigate }) => {
           </div>`;
         }
       }).join('');
-const AdminDashboard = ({ navigate }) => {
-  const [adminUser, setAdminUser] = useState(null);
-  const [activeSection, setActiveSection] = useState('overview');
-  const [activeCategoryTab, setActiveCategoryTab] = useState('all');
-  const [errorMsg, setErrorMsg] = useState(''); // global error display
-  const [stats, setStats] = useState({
-    totalBookings: 0, totalRevenue: 0, pendingBookings: 0,
-    totalCustomers: 0, totalPackages: 0, totalOrders: 0
-  });
-  const [statsYear, setStatsYear] = useState(new Date().getFullYear());
-  const [data, setData] = useState({
-    bookings: [], packages: [], orders: [], categories: [], items: [], users: [], payments: []
-  });
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [passengers, setPassengers] = useState([]);
+
+      const html =
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tourLeaders, setTourLeaders] = useState([]);
   const [bookingRooms, setBookingRooms] = useState([{ id: 1, sharing_type: 'double', num_adults: 1, num_children: 0, num_infants: 0, passengers: [] }]);
