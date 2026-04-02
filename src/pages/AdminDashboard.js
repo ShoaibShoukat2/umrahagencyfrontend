@@ -639,10 +639,6 @@ const AdminDashboard = ({ navigate }) => {
           </div>`;
         }
       }).join('');
-seState, useEffect } from 'react';
-import { api, adminApi } from '../api';
-import DocumentUploadSection from '../components/DocumentUploadSection';
-
 const AdminDashboard = ({ navigate }) => {
   const [adminUser, setAdminUser] = useState(null);
   const [activeSection, setActiveSection] = useState('overview');
