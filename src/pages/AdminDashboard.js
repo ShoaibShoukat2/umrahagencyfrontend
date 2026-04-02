@@ -564,20 +564,57 @@ const AdminDashboard = ({ navigate }) => {
       // Build printable HTML page
       const tagField = tagType === 'id' ? 'id_tag' : 'bag_tag';
       const title = tagType === 'id' ? 'ID Tags' : 'Bag Tags';
-      const tagsHtml = data.tags.map(t => `
-        <div style="display:inline-block;margin:8px;border:1px solid #ccc;border-radius:8px;padding:8px;page-break-inside:avoid;text-align:center;width:280px">
-          <p style="font-weight:bold;margin:4px 0">${t.customer_name}</p>
-          <p style="font-size:12px;color:#555;margin:2px 0">Booking: ${t.booking_number}</p>
-          ${t[tagField] ? `<img src="${t[tagField]}" style="width:260px;height:auto;margin-top:6px" />` : '<p style="color:red">No tag generated</p>'}
+      const isId = tagType === 'id';
+
+      const tagsHtml = data.tags.map(t => isId ? `
+        <div style="width:220px;background:#fff;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.15);overflow:hidden;page-break-inside:avoid;display:inline-block;margin:8px;vertical-align:top">
+          <div style="padding:10px 10px 6px;border-bottom:3px solid #c8a84b">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:26px">🕌</span>
+              <div>
+                <div style="font-size:14px;font-weight:900;color:#1b5e20;letter-spacing:.5px">TM FOUZY</div>
+                <div style="font-size:8px;color:#555;font-weight:600">TRAVEL &amp; TOURS PTE LTD</div>
+                <div style="font-size:9px;color:#1b5e20;direction:rtl">شركة ت.م فوزي للسفر والسياحة</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-top:6px">
+              <span>🇸🇬</span><span style="font-size:11px;direction:rtl">سنغافورة</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;margin:10px 0 6px">
+            <div style="width:80px;height:80px;border-radius:50%;border:3px solid #c8a84b;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:36px">�</div>
+          </div>
+          <div style="text-align:center;font-size:12px;font-weight:900;color:#111;padding:0 8px;text-transform:uppercase;line-height:1.3">${t.customer_name}</div>
+          <div style="text-align:center;font-size:10px;color:#666;margin:3px 0 0">Booking No: ${t.booking_number}</div>
+          <div style="background:#c8a84b;color:#1a0f00;text-align:center;font-size:11px;font-weight:900;padding:6px;margin-top:8px;letter-spacing:.5px;text-transform:uppercase">${data.package_name}</div>
+        </div>
+      ` : `
+        <div style="width:220px;background:#fff;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.15);overflow:hidden;page-break-inside:avoid;display:inline-block;margin:8px;vertical-align:top">
+          <div style="padding:10px 10px 6px;border-bottom:3px solid #1b5e20">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:26px">🕌</span>
+              <div>
+                <div style="font-size:14px;font-weight:900;color:#1b5e20">TM FOUZY</div>
+                <div style="font-size:8px;color:#555;font-weight:600">TRAVEL &amp; TOURS PTE LTD</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:10px">
+            <div style="font-size:13px;font-weight:900;color:#111;text-transform:uppercase">${t.customer_name}</div>
+            <div style="font-size:10px;color:#555;margin-top:3px">Booking: ${t.booking_number}</div>
+            <div style="font-size:10px;color:#1b5e20;font-weight:700;margin-top:3px">${data.package_name}</div>
+            ${t[tagField] ? `<img src="${t[tagField]}" style="display:block;width:90px;margin:8px auto" />` : ''}
+          </div>
+          <div style="background:#1b5e20;color:#fff;text-align:center;font-size:11px;font-weight:900;padding:6px;letter-spacing:.5px">🧳 BAGGAGE TAG</div>
         </div>
       `).join('');
 
-      const html = `<!DOCTYPE html><html><head><title>${title} - ${data.package_name}</title>
-        <style>body{font-family:Arial,sans-serif;padding:16px} @media print{button{display:none}}</style>
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title} - ${data.package_name}</title>
+        <style>body{font-family:Arial,sans-serif;background:#f0f0f0;padding:20px} @media print{body{background:#fff;padding:0}.no-print{display:none}}</style>
       </head><body>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h2 style="margin:0">${title} — ${data.package_name} (${data.total_customers} passengers)</h2>
-          <button onclick="window.print()" style="padding:8px 20px;background:#2e7d32;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨 Print</button>
+        <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h2 style="margin:0;color:#1b5e20">${title} — ${data.package_name} (${data.total_customers} passengers)</h2>
+          <button onclick="window.print()" style="padding:10px 22px;background:#1b5e20;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold">🖨 Print All</button>
         </div>
         <div>${tagsHtml}</div>
       </body></html>`;
