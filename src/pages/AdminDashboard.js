@@ -588,6 +588,7 @@ const AdminDashboard = ({ navigate }) => {
           </div>
           <div style="text-align:center;font-size:11px;font-weight:900;color:#111;padding:0 8px;text-transform:uppercase;line-height:1.4">${t.customer_name}</div>
           <div style="text-align:center;font-size:9px;color:#555;margin:3px 0">Booking: ${t.booking_number}</div>
+          ${t.id_tag ? `<img src="${t.id_tag}" style="display:block;width:80px;height:80px;margin:6px auto;border-radius:4px" />` : ''}
           <div style="background:#c8a84b;color:#1a0f00;text-align:center;font-size:11px;font-weight:900;padding:7px;margin-top:8px;letter-spacing:1px;text-transform:uppercase">${data.package_name}</div>
         </div>
         <!-- BACK -->
@@ -626,15 +627,12 @@ const AdminDashboard = ({ navigate }) => {
               <div style="font-size:8px;color:#555">Tel: +65 6294 8044</div>
               <div style="font-size:8px;color:#1b5e20;font-weight:700;margin-top:3px">${data.package_name}</div>
             </div>
-            <!-- Right: logo + flag -->
+            <!-- Right: QR code + logo -->
             <div style="width:100px;border-left:1px solid #eee;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
-              <span style="font-size:28px">🕌</span>
-              <div style="font-size:12px;font-weight:900;color:#1b5e20;letter-spacing:.5px;text-align:center">TM FOUZY</div>
-              <div style="font-size:7px;color:#555;font-weight:600;text-align:center">TRAVEL &amp; TOURS PTE LTD</div>
-              <div style="font-size:8px;color:#1b5e20;direction:rtl;text-align:center">شركة ت.م فوزي</div>
-              <div style="display:flex;align-items:center;gap:3px;margin-top:4px">
-                <span style="font-size:16px">🇸🇬</span>
-                <span style="font-size:8px;direction:rtl;color:#333">سنغافورة</span>
+              ${t.bag_tag ? `<img src="${t.bag_tag}" style="width:80px;height:80px;border-radius:4px" />` : '<span style="font-size:28px">&#x1F54C;</span>'}
+              <div style="font-size:10px;font-weight:900;color:#1b5e20;text-align:center">TM FOUZY</div>
+              <div style="display:flex;align-items:center;gap:2px;margin-top:2px">
+                <span style="font-size:14px">&#x1F1F8;&#x1F1EC;</span>
               </div>
             </div>
           </div>
