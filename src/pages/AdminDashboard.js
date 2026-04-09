@@ -824,6 +824,14 @@ const AdminDashboard = ({ navigate }) => {
               <span>Documents</span>
             </button>
 
+            <button onClick={() => { setActiveSection('live-audio'); setMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'live-audio' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+              }`}>
+              <span className="text-xl">🎙️</span>
+              <span>Live Audio</span>
+            </button>
+
             <button onClick={() => { setActiveSection('qr-tags'); setMobileMenuOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'qr-tags' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
@@ -863,6 +871,7 @@ const AdminDashboard = ({ navigate }) => {
             {activeSection === 'customers' && '👤 Manage Customers & Tour Leaders'}
             {activeSection === 'documents' && '📄 Customer Documents'}
             {activeSection === 'qr-tags' && '🪪 ID & Bag Tags'}
+            {activeSection === 'live-audio' && '🎙️ Live Audio Broadcast'}
           </h1>
           <p className="text-gray-600">Welcome back, {adminUser?.username}</p>
         </div>
@@ -1638,6 +1647,11 @@ const AdminDashboard = ({ navigate }) => {
           <div>
             <DocumentUploadSection customers={data.customers || []} packages={data.packages || []} />
           </div>
+        )}
+
+        {/* Live Audio Section */}
+        {activeSection === 'live-audio' && (
+          <LiveAudioSection packages={data.packages} API_BASE={process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api'} showError={showError} showSuccess={showSuccess} />
         )}
 
         {/* QR Tags Section */}
@@ -2435,5 +2449,120 @@ const AdminDashboard = ({ navigate }) => {
     </div>
   );
 };
+
+// ── Live Audio Section Component ──────────────────────────────
+function LiveAudioSection({ packages, API_BASE, showError, showSuccess }) {
+  const [sessions, setSessions] = React.useState([]);
+  const [selectedPkg, setSelectedPkg] = React.useState('');
+  const [title, setTitle] = React.useState('Live Briefing from Tour Leader');
+  const [loading, setLoading] = React.useState(false);
+
+  const fetchSessions = async (pkgId) => {
+    if (!pkgId) return;
+    try {
+      const res = await fetch(`${API_BASE}/live-audio/active/?package_id=${pkgId}`);
+      const data = await res.json();
+      setSessions(data.sessions || []);
+    } catch (_) { setSessions([]); }
+  };
+
+  const handleStart = async () => {
+    if (!selectedPkg) { showError(new Error('Please select a package')); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/live-audio/start/`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ package_id: selectedPkg, tour_leader_email: 'admin@tmfouzy.sg', title })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      showSuccess(`🔴 Live started! ${data.customers_notified} passengers notified. Channel: ${data.channel_name}`);
+      fetchSessions(selectedPkg);
+    } catch (e) { showError(e); }
+    finally { setLoading(false); }
+  };
+
+  const handleEnd = async (sessionId) => {
+    try {
+      const res = await fetch(`${API_BASE}/live-audio/end/`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      showSuccess(`Session ended. Duration: ${Math.round(data.duration_minutes)} min, Listeners: ${data.total_listeners}`);
+      fetchSessions(selectedPkg);
+    } catch (e) { showError(e); }
+  };
+
+  return (
+    <div>
+      {/* Info Banner */}
+      <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-6 mb-8 text-white flex items-center gap-4">
+        <div className="text-5xl">🎙️</div>
+        <div>
+          <h2 className="text-xl font-bold mb-1">Live Audio Broadcast</h2>
+          <p className="text-red-100 text-sm">Start a live audio session for your group. All passengers in the package will be notified on their mobile app.</p>
+        </div>
+      </div>
+
+      {/* Start Broadcast */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <h3 className="text-lg font-bold mb-4">📡 Start New Broadcast</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Select Package</label>
+            <select value={selectedPkg} onChange={e => { setSelectedPkg(e.target.value); fetchSessions(e.target.value); }}
+              className="w-full border-2 border-gray-300 rounded-lg px-3 py-2">
+              <option value="">-- Select Package --</option>
+              {packages?.filter(p => p.is_active).map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Broadcast Title</label>
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)}
+              className="w-full border-2 border-gray-300 rounded-lg px-3 py-2"
+              placeholder="e.g. Morning Briefing, Tawaf Instructions..." />
+          </div>
+        </div>
+        <button onClick={handleStart} disabled={loading || !selectedPkg}
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50">
+          {loading ? '⏳ Starting...' : '🔴 Start Live Broadcast'}
+        </button>
+      </div>
+
+      {/* Active Sessions */}
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold">📻 Active Sessions</h3>
+          <button onClick={() => fetchSessions(selectedPkg)} className="text-sm text-red-600 hover:underline">Refresh</button>
+        </div>
+        {sessions.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <div className="text-4xl mb-2">🔇</div>
+            <p>No active sessions. Start a broadcast above.</p>
+          </div>
+        ) : sessions.map(s => (
+          <div key={s.id} className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-xl mb-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+                <span className="text-xs font-bold text-red-600">LIVE</span>
+              </div>
+              <p className="font-bold text-gray-900">{s.title}</p>
+              <p className="text-sm text-gray-500">👥 {s.listener_count} listening · Channel: {s.channel_name}</p>
+            </div>
+            <button onClick={() => handleEnd(s.id)}
+              className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+              ⏹ End
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default AdminDashboard;
