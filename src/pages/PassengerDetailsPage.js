@@ -20,7 +20,8 @@ const PassengerDetailsPage = ({ navigate, packageData, bookingData }) => {
           photo_id: null
         });
       }
-      for (let i = 0; i < room.num_children; i++) {
+      const childCount = room.num_child_no_bed ?? room.num_children ?? 0;
+      for (let i = 0; i < childCount; i++) {
         initial.push({ 
           room_number: room.room_number, 
           type: 'child', 

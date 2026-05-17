@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 
 // API Base URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api';
 
 const LoginPage = ({ navigate, onLogin }) => {
   const [formData, setFormData] = useState({
@@ -28,6 +28,9 @@ const LoginPage = ({ navigate, onLogin }) => {
 
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
+        if (data.tokens?.access) {
+          localStorage.setItem('authToken', data.tokens.access);
+        }
         onLogin(data.user);
         alert('Login successful!');
         navigate('landing');

@@ -1,5 +1,5 @@
 // API Base URL - Use environment variable or default to PythonAnywhere
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://Tmfauwaz.pythonanywhere.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api';
 
 export const api = {
   // Categories
@@ -71,6 +71,10 @@ export const api = {
     formData.append('addons', JSON.stringify(bookingData.addons || []));
     formData.append('payment_amount', bookingData.payment_amount);
     formData.append('payment_method', bookingData.payment_method);
+
+    if (bookingData.discount_code) {
+      formData.append('discount_code', bookingData.discount_code);
+    }
     
     // Add payment screenshot if exists
     if (bookingData.payment_screenshot) {

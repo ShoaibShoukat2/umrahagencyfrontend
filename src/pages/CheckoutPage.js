@@ -43,7 +43,7 @@ const CheckoutPage = ({ navigate, packageData, bookingData }) => {
   const getTotalPax = () => {
     let total = 0;
     bookingData.rooms.forEach(room => {
-      total += (room.num_adults || 0) + (room.num_children || 0) + (room.num_infants || 0);
+      total += (room.num_adults || 0) + (room.num_child_no_bed ?? room.num_children ?? 0) + (room.num_infants || 0);
     });
     return total;
   };
@@ -65,7 +65,7 @@ const CheckoutPage = ({ navigate, packageData, bookingData }) => {
       if (roomPrice) {
         // Handle missing keys with defaults
         const numAdults = room.num_adults || 0;
-        const numChildren = room.num_children || 0;
+        const numChildren = room.num_child_no_bed ?? room.num_children ?? 0;
         const numInfants = room.num_infants || 0;
         const numPeople = numAdults + numChildren + numInfants;
         
@@ -239,7 +239,7 @@ const CheckoutPage = ({ navigate, packageData, bookingData }) => {
                 const roomPrice = pkg.room_prices.find(rp => rp.sharing_type === room.sharing_type);
                 // Handle missing keys with defaults
                 const numAdults = room.num_adults || 0;
-                const numChildren = room.num_children || 0;
+                const numChildren = room.num_child_no_bed ?? room.num_children ?? 0;
                 const numInfants = room.num_infants || 0;
                 const numPeople = numAdults + numChildren + numInfants;
                 const subtotal = roomPrice ? parseFloat(roomPrice.price) * numPeople : 0;
