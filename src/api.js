@@ -1,6 +1,5 @@
 // API Base URL - Use environment variable or default to PythonAnywhere
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api';
-
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api';
 export const api = {
   // Categories
   getCategories: async () => {
@@ -179,7 +178,14 @@ export const api = {
       body: JSON.stringify({ code, amount }),
     });
     return response.json();
-  }
+  },
+
+  // Customer documents
+  getCustomerDocuments: async (email) => {
+    const response = await fetch(`${API_BASE_URL}/customer-documents/?email=${email}`);
+    if (!response.ok) throw new Error('Failed to fetch documents');
+    return response.json();
+  },
 };
 
 // Helper — converts Django validation errors to readable string
@@ -487,6 +493,69 @@ export const adminApi = {
 
   deleteCustomerDocument: async (documentId) => {
     const response = await fetch(`${API_BASE_URL}/customer-documents/${documentId}/`, {
+      method: 'DELETE'
+    });
+    return response.ok;
+  },
+
+  // Contact Messages (admin)
+  getContactMessages: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/contact-messages/`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results || []);
+  },
+
+  markContactMessageRead: async (messageId, isRead = true) => {
+    const response = await fetch(`${API_BASE_URL}/admin/contact-messages/${messageId}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_read: isRead })
+    });
+    return response.json();
+  },
+
+  deleteContactMessage: async (messageId) => {
+    const response = await fetch(`${API_BASE_URL}/admin/contact-messages/${messageId}/`, {
+      method: 'DELETE'
+    });
+    return response.ok;
+  },
+
+  // Discount Codes (admin)
+  getDiscountCodes: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/discount-codes/`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results || []);
+  },
+
+  createDiscountCode: async (codeData) => {
+    const response = await fetch(`${API_BASE_URL}/admin/discount-codes/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(codeData)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(formatApiError(error));
+    }
+    return response.json();
+  },
+
+  updateDiscountCode: async (codeId, codeData) => {
+    const response = await fetch(`${API_BASE_URL}/admin/discount-codes/${codeId}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(codeData)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(formatApiError(error));
+    }
+    return response.json();
+  },
+
+  deleteDiscountCode: async (codeId) => {
+    const response = await fetch(`${API_BASE_URL}/admin/discount-codes/${codeId}/`, {
       method: 'DELETE'
     });
     return response.ok;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 
 // API Base URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api';
+import { API_BASE_URL } from '../api';
 
 const ForgotPasswordPage = ({ navigate }) => {
   const [step, setStep] = useState(1); // 1: Request OTP, 2: Verify & Reset

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { api } from '../api';
+import { api, API_BASE_URL } from '../api';
 
 const CustomerPortal = ({ navigate }) => {
   const [email, setEmail] = useState('');
@@ -16,7 +16,8 @@ const CustomerPortal = ({ navigate }) => {
   const [editMode, setEditMode] = useState(false);
   const [customerData, setCustomerData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('bookings'); // 'bookings' or 'shop-orders'
+  const [activeTab, setActiveTab] = useState('bookings'); // 'bookings', 'shop-orders', or 'documents'
+  const [documents, setDocuments] = useState([]);
   const [expandedBookings, setExpandedBookings] = useState({}); // Track which bookings are expanded
   const [expandedOrders, setExpandedOrders] = useState({}); // Track which shop orders are expanded
 
@@ -56,18 +57,21 @@ const CustomerPortal = ({ navigate }) => {
         setEmail(userData.email);
         
         try {
-          const [bookingsData, customerData, itemOrdersData] = await Promise.all([
+          const [bookingsData, customerData, itemOrdersData, documentsData] = await Promise.all([
             api.getCustomerBookings(userData.email),
             api.getCustomer(userData.email),
-            api.getCustomerItemOrders(userData.email)
+            api.getCustomerItemOrders(userData.email),
+            api.getCustomerDocuments(userData.email).catch(() => [])
           ]);
           
           const bookings = Array.isArray(bookingsData) ? bookingsData : (bookingsData.results || []);
           const customers = Array.isArray(customerData) ? customerData : (customerData.results || []);
           const orders = Array.isArray(itemOrdersData) ? itemOrdersData : [];
+          const docs = Array.isArray(documentsData) ? documentsData : [];
           
           setBookings(bookings);
           setItemOrders(orders);
+          setDocuments(docs);
           setCustomer(customers[0] || null);
           setCustomerData(customers[0] || {});
           setIsLoggedIn(true);
@@ -89,20 +93,22 @@ const CustomerPortal = ({ navigate }) => {
     }
 
     try {
-      const [bookingsData, customerData, itemOrdersData] = await Promise.all([
+      const [bookingsData, customerData, itemOrdersData, documentsData] = await Promise.all([
         api.getCustomerBookings(email),
         api.getCustomer(email),
-        api.getCustomerItemOrders(email)
+        api.getCustomerItemOrders(email),
+        api.getCustomerDocuments(email).catch(() => [])
       ]);
       
-      // Handle both paginated and non-paginated responses
       const bookings = Array.isArray(bookingsData) ? bookingsData : (bookingsData.results || []);
       const customers = Array.isArray(customerData) ? customerData : (customerData.results || []);
       const orders = Array.isArray(itemOrdersData) ? itemOrdersData : [];
+      const docs = Array.isArray(documentsData) ? documentsData : [];
       
-      if (bookings.length > 0 || customers.length > 0 || orders.length > 0) {
+      if (bookings.length > 0 || customers.length > 0 || orders.length > 0 || docs.length > 0) {
         setBookings(bookings);
         setItemOrders(orders);
+        setDocuments(docs);
         setCustomer(customers[0] || null);
         setCustomerData(customers[0] || {});
         setIsLoggedIn(true);
@@ -255,6 +261,7 @@ const CustomerPortal = ({ navigate }) => {
               setEmail('');
               setBookings([]);
               setItemOrders([]);
+              setDocuments([]);
               setCustomer(null);
             }} 
             className="text-gray-600 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all">
@@ -342,6 +349,15 @@ const CustomerPortal = ({ navigate }) => {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}>
                 Shop Orders ({itemOrders.length})
+              </button>
+              <button 
+                onClick={() => setActiveTab('documents')}
+                className={`pb-3 px-4 font-semibold transition-all ${
+                  activeTab === 'documents' 
+                    ? 'border-b-2 border-green-600 text-green-600' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}>
+                My Documents ({documents.length})
               </button>
             </div>
 
@@ -470,7 +486,7 @@ const CustomerPortal = ({ navigate }) => {
                     {/* Invoice Button */}
                     <div className="mb-4">
                       <button 
-                        onClick={() => window.open(`https://tmfauwaz.pythonanywhere.com/api/bookings/${booking.id}/invoice/?email=${email}`, '_blank')}
+                        onClick={() => window.open(`${API_BASE_URL}/bookings/${booking.id}/invoice/?email=${email}`, '_blank')}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2">
                         <span>📄</span>
                         <span>Download Invoice (PDF)</span>
@@ -608,7 +624,7 @@ const CustomerPortal = ({ navigate }) => {
                               <div className="text-right">
                                 <p className="font-bold text-green-600">${payment.amount}</p>
                                 <button 
-                                  onClick={() => window.open(`https://tmfauwaz.pythonanywhere.com/api/payments/${payment.id}/receipt/?email=${email}`, '_blank')}
+                                  onClick={() => window.open(`${API_BASE_URL}/payments/${payment.id}/receipt/?email=${email}`, '_blank')}
                                   className="mt-1 text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-all">
                                   Download Receipt (PDF)
                                 </button>
@@ -725,6 +741,49 @@ const CustomerPortal = ({ navigate }) => {
                       </div>
                       );
                     })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Documents Tab */}
+            {activeTab === 'documents' && (
+              <div>
+                <h2 className="text-2xl font-bold mb-4">My Documents</h2>
+                {documents.length === 0 ? (
+                  <div className="bg-white rounded-lg shadow p-8 text-center">
+                    <p className="text-gray-500 mb-2">No documents available yet</p>
+                    <p className="text-sm text-gray-400">Your travel documents (visa, tickets, etc.) will appear here once uploaded by our team.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {documents.map(doc => (
+                      <div key={doc.id} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold">{doc.title}</h3>
+                            {doc.is_important && (
+                              <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">Important</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{doc.document_type_display}</p>
+                          {doc.description && <p className="text-sm text-gray-500 mt-1">{doc.description}</p>}
+                          <p className="text-xs text-gray-400 mt-1">
+                            Uploaded {new Date(doc.created_at).toLocaleDateString()}
+                            {doc.expiry_date && ` · Expires ${new Date(doc.expiry_date).toLocaleDateString()}`}
+                          </p>
+                        </div>
+                        {doc.file_url && (
+                          <a
+                            href={doc.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap">
+                            View / Download
+                          </a>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

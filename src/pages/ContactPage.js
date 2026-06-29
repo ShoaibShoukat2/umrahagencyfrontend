@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
+import { API_BASE_URL } from '../api';
 
 const ContactPage = ({ navigate }) => {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ const ContactPage = ({ navigate }) => {
     e.preventDefault();
     
     // Send to backend API
-    fetch('https://tmfauwaz.pythonanywhere.com/api/contact/', {
+    fetch(`${API_BASE_URL}/contact/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

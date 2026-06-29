@@ -322,6 +322,59 @@ const LandingPage = ({ navigate }) => {
         </div>
       </section>
 
+      {/* Travel Shop Essentials */}
+      {items.length > 0 && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex justify-between items-end mb-12">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                  Travel Essentials
+                </h2>
+                <p className="text-xl text-gray-600">
+                  Everything you need for your spiritual journey
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('shop')}
+                className="hidden md:block text-green-600 font-semibold hover:text-green-700 flex items-center">
+                View All
+                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => navigate('shop')}
+                  className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
+                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-green-100 to-green-200">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-6xl">📦</div>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-green-600 transition-colors">
+                      {item.name}
+                    </h3>
+                    <p className="text-2xl font-bold text-green-600">${item.price}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Why Choose Us - Modern Grid */}
       <section className="py-20 bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4">

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { API_BASE_URL } from '../api';
 
 function AIChatBot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +25,7 @@ function AIChatBot() {
   const getAIResponse = async (userMessage) => {
     try {
       // Call backend AI endpoint (uses Google Gemini)
-      const response = await fetch('/api/chat/', {
+      const response = await fetch(`${API_BASE_URL}/chat/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

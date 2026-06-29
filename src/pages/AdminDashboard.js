@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api, adminApi } from '../api';
+import { api, adminApi, API_BASE_URL } from '../api';
 import DocumentUploadSection from '../components/DocumentUploadSection';
 
 const AdminDashboard = ({ navigate }) => {
@@ -13,7 +13,8 @@ const AdminDashboard = ({ navigate }) => {
   });
   const [statsYear, setStatsYear] = useState(new Date().getFullYear());
   const [data, setData] = useState({
-    bookings: [], packages: [], orders: [], categories: [], items: [], users: [], payments: []
+    bookings: [], packages: [], orders: [], categories: [], items: [], users: [], payments: [],
+    contactMessages: [], discountCodes: []
   });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -27,6 +28,7 @@ const AdminDashboard = ({ navigate }) => {
   const [discountCode, setDiscountCode] = useState('');
   const [bookingSearch, setBookingSearch] = useState('');
   const [packageStatusFilter, setPackageStatusFilter] = useState('all'); // 'all','active','inactive','featured'
+  const [discountForm, setDiscountForm] = useState(null);
 
   const showError = (err) => {
     const msg = err?.message || String(err) || 'Something went wrong';
@@ -55,10 +57,11 @@ const AdminDashboard = ({ navigate }) => {
       setLoading(true);
       console.log('Loading admin data...');
       
-      const [bookings, packages, orders, categories, items, users, payments, tourLeadersData, customersData] = await Promise.all([
+      const [bookings, packages, orders, categories, items, users, payments, tourLeadersData, customersData, contactMessages, discountCodes] = await Promise.all([
         adminApi.getBookings(), adminApi.getAllPackages(), adminApi.getOrders(),
         adminApi.getAllCategories(), api.getItems(), adminApi.getUsers(), adminApi.getPayments(),
-        adminApi.getTourLeaders(), adminApi.getCustomers()
+        adminApi.getTourLeaders(), adminApi.getCustomers(),
+        adminApi.getContactMessages(), adminApi.getDiscountCodes()
       ]);
 
       console.log('Raw data received:', { bookings, packages, orders, categories, items, users, payments, tourLeadersData, customersData });
@@ -108,7 +111,9 @@ const AdminDashboard = ({ navigate }) => {
       setData({
         bookings: bookingsArray, packages: packagesArray, orders: ordersArray,
         categories: categoriesArray, items: itemsArray, users: usersArray, payments: paymentsArray,
-        customers: customersArray
+        customers: customersArray,
+        contactMessages: Array.isArray(contactMessages) ? contactMessages : [],
+        discountCodes: Array.isArray(discountCodes) ? discountCodes : []
       });
       
       setTourLeaders(tourLeadersArray);
@@ -307,7 +312,7 @@ const AdminDashboard = ({ navigate }) => {
           ...formData,
           description: formData.description || formData.short_description || selectedItem.description || '',
           min_deposit_amount: formData.min_deposit_amount || selectedItem.min_deposit_amount || 100,
-          // URLFields ù send null if empty, not empty string
+          // URLFields ÔøΩ send null if empty, not empty string
           featured_image: formData.featured_image || null,
           hotel_image: formData.hotel_image || null,
           // category must be ID (number)
@@ -322,12 +327,12 @@ const AdminDashboard = ({ navigate }) => {
             const avail = formData[`room_avail_${key}`] ?? true;
             const existing = formData.room_prices?.find(r => r.sharing_type === key);
             if (existing) {
-              await fetch(`${process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api'}/admin/packages/${selectedItem.id}/update_room_price/`, {
+              await fetch(`${API_BASE_URL}/admin/packages/${selectedItem.id}/update_room_price/`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sharing_type: key, price: parseFloat(price), available: avail })
               });
             } else {
-              await fetch(`${process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api'}/admin/packages/${selectedItem.id}/update_room_price/`, {
+              await fetch(`${API_BASE_URL}/admin/packages/${selectedItem.id}/update_room_price/`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sharing_type: key, price: parseFloat(price), available: avail })
               });
@@ -514,6 +519,101 @@ const AdminDashboard = ({ navigate }) => {
     }
   };
 
+  const handleMarkMessageRead = async (messageId) => {
+    try {
+      await adminApi.markContactMessageRead(messageId, true);
+      showSuccess('Message marked as read');
+      loadAllData();
+    } catch (error) {
+      showError(error);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Delete this contact message?')) return;
+    try {
+      await adminApi.deleteContactMessage(messageId);
+      showSuccess('Message deleted');
+      loadAllData();
+    } catch (error) {
+      showError(error);
+    }
+  };
+
+  const openDiscountForm = (code = null) => {
+    if (code) {
+      setDiscountForm({
+        id: code.id,
+        code: code.code,
+        discount_type: code.discount_type,
+        discount_value: code.discount_value,
+        min_purchase_amount: code.min_purchase_amount || '0',
+        max_discount_amount: code.max_discount_amount || '',
+        usage_limit: code.usage_limit || '',
+        valid_from: code.valid_from ? code.valid_from.slice(0, 16) : '',
+        valid_until: code.valid_until ? code.valid_until.slice(0, 16) : '',
+        is_active: code.is_active
+      });
+    } else {
+      const now = new Date();
+      const nextMonth = new Date(now);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      setDiscountForm({
+        code: '',
+        discount_type: 'percentage',
+        discount_value: '',
+        min_purchase_amount: '0',
+        max_discount_amount: '',
+        usage_limit: '',
+        valid_from: now.toISOString().slice(0, 16),
+        valid_until: nextMonth.toISOString().slice(0, 16),
+        is_active: true
+      });
+    }
+  };
+
+  const handleSaveDiscountCode = async () => {
+    if (!discountForm?.code || !discountForm?.discount_value) {
+      showError(new Error('Code and discount value are required'));
+      return;
+    }
+    try {
+      const payload = {
+        code: discountForm.code.toUpperCase(),
+        discount_type: discountForm.discount_type,
+        discount_value: discountForm.discount_value,
+        min_purchase_amount: discountForm.min_purchase_amount || 0,
+        max_discount_amount: discountForm.max_discount_amount || null,
+        usage_limit: discountForm.usage_limit || null,
+        valid_from: new Date(discountForm.valid_from).toISOString(),
+        valid_until: new Date(discountForm.valid_until).toISOString(),
+        is_active: discountForm.is_active
+      };
+      if (discountForm.id) {
+        await adminApi.updateDiscountCode(discountForm.id, payload);
+        showSuccess('Discount code updated');
+      } else {
+        await adminApi.createDiscountCode(payload);
+        showSuccess('Discount code created');
+      }
+      setDiscountForm(null);
+      loadAllData();
+    } catch (error) {
+      showError(error);
+    }
+  };
+
+  const handleDeleteDiscountCode = async (codeId) => {
+    if (!window.confirm('Delete this discount code?')) return;
+    try {
+      await adminApi.deleteDiscountCode(codeId);
+      showSuccess('Discount code deleted');
+      loadAllData();
+    } catch (error) {
+      showError(error);
+    }
+  };
+
   const handleExportPackages = () => {
     adminApi.exportPackages();
   };
@@ -551,7 +651,7 @@ const AdminDashboard = ({ navigate }) => {
 
   const handlePrintTags = async (packageId, tagType) => {
     try {
-      const API = process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api';
+      const API = API_BASE_URL;
       const res = await fetch(`${API}/qr/bulk-tags/${packageId}/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -643,7 +743,7 @@ const AdminDashboard = ({ navigate }) => {
         <style>body{font-family:Arial,sans-serif;background:#f0f0f0;padding:20px} @media print{body{background:#fff;padding:0}.no-print{display:none}}</style>
       </head><body>
         <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-          <h2 style="margin:0;color:#1b5e20">${title} ù ${data.package_name} (${data.total_customers} passengers)</h2>
+          <h2 style="margin:0;color:#1b5e20">${title} ÔøΩ ${data.package_name} (${data.total_customers} passengers)</h2>
           <button onclick="window.print()" style="padding:10px 22px;background:#1b5e20;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold">?? Print All</button>
         </div>
         <div>${tagsHtml}</div>
@@ -824,6 +924,28 @@ const AdminDashboard = ({ navigate }) => {
               <span>Documents</span>
             </button>
 
+            <button onClick={() => { setActiveSection('discount-codes'); setMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'discount-codes' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+              }`}>
+              <span className="text-xl">üè∑Ô∏è</span>
+              <span>Discount Codes</span>
+            </button>
+
+            <button onClick={() => { setActiveSection('messages'); setMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                activeSection === 'messages' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
+              }`}>
+              <span className="text-xl">‚úâÔ∏è</span>
+              <span>Contact Messages
+                {data.contactMessages.filter(m => !m.is_read).length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    {data.contactMessages.filter(m => !m.is_read).length}
+                  </span>
+                )}
+              </span>
+            </button>
+
             <button onClick={() => { setActiveSection('live-audio'); setMobileMenuOpen(false); }}
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'live-audio' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
@@ -869,7 +991,9 @@ const AdminDashboard = ({ navigate }) => {
             {activeSection === 'items' && '? Manage Shop Items'}
             {activeSection === 'users' && '?? Manage Users'}
             {activeSection === 'customers' && '?? Manage Customers & Tour Leaders'}
-            {activeSection === 'documents' && '?? Customer Documents'}
+            {activeSection === 'documents' && 'üìÑ Customer Documents'}
+            {activeSection === 'discount-codes' && 'üè∑Ô∏è Discount Codes'}
+            {activeSection === 'messages' && '‚úâÔ∏è Contact Messages'}
             {activeSection === 'qr-tags' && '?? ID & Bag Tags'}
             {activeSection === 'live-audio' && '??? Live Audio Broadcast'}
           </h1>
@@ -1036,7 +1160,7 @@ const AdminDashboard = ({ navigate }) => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.customer?.email}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">{booking.package_name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-center">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{totalPax || 'ù'}</span>
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{totalPax || 'ÔøΩ'}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <select
@@ -1236,7 +1360,7 @@ const AdminDashboard = ({ navigate }) => {
                     <button
                       onClick={async () => {
                         try {
-                          const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api'}/admin/packages/${pkg.id}/`);
+                          const res = await fetch(`${API_BASE_URL}/admin/packages/${pkg.id}/`);
                           const fullPkg = await res.json();
                           const categoryId = fullPkg.category?.id ?? fullPkg.category ?? '';
                           openModal('edit-package', { ...fullPkg, category: categoryId });
@@ -1251,7 +1375,7 @@ const AdminDashboard = ({ navigate }) => {
                     <button
                       onClick={async () => {
                         try {
-                          const res = await fetch(`${process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api'}/admin/packages/${pkg.id}/`, {
+                          const res = await fetch(`${API_BASE_URL}/admin/packages/${pkg.id}/`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ is_active: !pkg.is_active })
@@ -1649,9 +1773,182 @@ const AdminDashboard = ({ navigate }) => {
           </div>
         )}
 
+        {/* Discount Codes Section */}
+        {activeSection === 'discount-codes' && (
+          <div>
+            <div className="mb-6 flex gap-3">
+              <button
+                onClick={() => openDiscountForm()}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all">
+                + Add Discount Code
+              </button>
+            </div>
+
+            {discountForm && (
+              <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border-2 border-green-200">
+                <h3 className="text-lg font-bold mb-4">{discountForm.id ? 'Edit' : 'New'} Discount Code</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Code *</label>
+                    <input type="text" value={discountForm.code}
+                      onChange={(e) => setDiscountForm({ ...discountForm, code: e.target.value.toUpperCase() })}
+                      className="w-full border rounded-lg px-3 py-2" placeholder="SUMMER2026" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Type *</label>
+                    <select value={discountForm.discount_type}
+                      onChange={(e) => setDiscountForm({ ...discountForm, discount_type: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2">
+                      <option value="percentage">Percentage (%)</option>
+                      <option value="fixed">Fixed Amount ($)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Value *</label>
+                    <input type="number" value={discountForm.discount_value}
+                      onChange={(e) => setDiscountForm({ ...discountForm, discount_value: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2" placeholder="10" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Min Purchase ($)</label>
+                    <input type="number" value={discountForm.min_purchase_amount}
+                      onChange={(e) => setDiscountForm({ ...discountForm, min_purchase_amount: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Max Discount ($)</label>
+                    <input type="number" value={discountForm.max_discount_amount}
+                      onChange={(e) => setDiscountForm({ ...discountForm, max_discount_amount: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2" placeholder="Optional" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Usage Limit</label>
+                    <input type="number" value={discountForm.usage_limit}
+                      onChange={(e) => setDiscountForm({ ...discountForm, usage_limit: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2" placeholder="Unlimited" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Valid From *</label>
+                    <input type="datetime-local" value={discountForm.valid_from}
+                      onChange={(e) => setDiscountForm({ ...discountForm, valid_from: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Valid Until *</label>
+                    <input type="datetime-local" value={discountForm.valid_until}
+                      onChange={(e) => setDiscountForm({ ...discountForm, valid_until: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2" />
+                  </div>
+                  <div className="flex items-end">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={discountForm.is_active}
+                        onChange={(e) => setDiscountForm({ ...discountForm, is_active: e.target.checked })}
+                        className="w-4 h-4" />
+                      <span className="text-sm font-medium">Active</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button onClick={handleSaveDiscountCode}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">
+                    Save
+                  </button>
+                  <button onClick={() => setDiscountForm(null)}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-semibold">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Code</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Discount</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Used</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Valid Until</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Status</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.discountCodes.length === 0 ? (
+                    <tr><td colSpan="6" className="text-center py-8 text-gray-400">No discount codes yet</td></tr>
+                  ) : data.discountCodes.map(code => (
+                    <tr key={code.id} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-3 font-bold">{code.code}</td>
+                      <td className="px-4 py-3">
+                        {code.discount_type === 'percentage' ? `${code.discount_value}%` : `$${code.discount_value}`}
+                      </td>
+                      <td className="px-4 py-3">{code.times_used}{code.usage_limit ? ` / ${code.usage_limit}` : ''}</td>
+                      <td className="px-4 py-3 text-sm">{new Date(code.valid_until).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${code.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                          {code.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => openDiscountForm(code)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
+                          <button onClick={() => handleDeleteDiscountCode(code.id)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Contact Messages Section */}
+        {activeSection === 'messages' && (
+          <div className="space-y-4">
+            {data.contactMessages.length === 0 ? (
+              <div className="bg-white rounded-xl shadow p-12 text-center text-gray-400">
+                No contact messages yet
+              </div>
+            ) : data.contactMessages.map(msg => (
+              <div key={msg.id} className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${msg.is_read ? 'border-gray-300' : 'border-blue-500'}`}>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-bold text-lg">{msg.subject}</h3>
+                    <p className="text-sm text-gray-600">{msg.name} ¬∑ {msg.email}{msg.phone ? ` ¬∑ ${msg.phone}` : ''}</p>
+                    <p className="text-xs text-gray-400 mt-1">{new Date(msg.created_at).toLocaleString()}</p>
+                  </div>
+                  {!msg.is_read && (
+                    <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-semibold">New</span>
+                  )}
+                </div>
+                <p className="text-gray-700 whitespace-pre-wrap mb-4">{msg.message}</p>
+                <div className="flex gap-3">
+                  {!msg.is_read && (
+                    <button onClick={() => handleMarkMessageRead(msg.id)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                      Mark as Read
+                    </button>
+                  )}
+                  <a href={`mailto:${msg.email}?subject=Re: ${msg.subject}`}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                    Reply via Email
+                  </a>
+                  <button onClick={() => handleDeleteMessage(msg.id)}
+                    className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-semibold">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Live Audio Section */}
         {activeSection === 'live-audio' && (
-          <LiveAudioSection packages={data.packages} API_BASE={process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api'} showError={showError} showSuccess={showSuccess} />
+          <LiveAudioSection packages={data.packages} API_BASE={API_BASE_URL} showError={showError} showSuccess={showSuccess} />
         )}
 
         {/* QR Tags Section */}
@@ -1670,15 +1967,15 @@ const AdminDashboard = ({ navigate }) => {
             <div className="flex flex-wrap gap-4 mb-6">
               <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-purple-100">
                 <div className="w-3 h-3 rounded-full bg-purple-600"></div>
-                <span className="text-sm font-medium text-gray-700">?? ID Tag ù Name, Booking #, Emergency Contact, QR</span>
+                <span className="text-sm font-medium text-gray-700">?? ID Tag ÔøΩ Name, Booking #, Emergency Contact, QR</span>
               </div>
               <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-orange-100">
                 <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                <span className="text-sm font-medium text-gray-700">?? Bag Tag ù Name, Room #, Hotel, Package QR</span>
+                <span className="text-sm font-medium text-gray-700">?? Bag Tag ÔøΩ Name, Room #, Hotel, Package QR</span>
               </div>
               <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-blue-100">
                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                <span className="text-sm font-medium text-gray-700">?? Rooming List ù Full PDF with all room assignments</span>
+                <span className="text-sm font-medium text-gray-700">?? Rooming List ÔøΩ Full PDF with all room assignments</span>
               </div>
             </div>
 
@@ -1711,7 +2008,7 @@ const AdminDashboard = ({ navigate }) => {
                         <div>
                           <p className="text-xs text-gray-500">Registered Passengers</p>
                           <p className="font-bold text-gray-900 text-lg">
-                            {data.bookings.filter(b => b.package_name === pkg.name).reduce((sum, b) => sum + (b.rooms?.reduce((rs, r) => rs + (r.passengers?.length || 0), 0) || 0), 0) || 'ù'}
+                            {data.bookings.filter(b => b.package_name === pkg.name).reduce((sum, b) => sum + (b.rooms?.reduce((rs, r) => rs + (r.passengers?.length || 0), 0) || 0), 0) || 'ÔøΩ'}
                           </p>
                         </div>
                       </div>
@@ -1737,7 +2034,7 @@ const AdminDashboard = ({ navigate }) => {
                         <span>??</span> Print Bag Tags (All Passengers)
                       </button>
                       <button
-                        onClick={() => window.open(`https://tmfauwaz.pythonanywhere.com/api/qr/rooming-list/${pkg.id}/`, '_blank')}
+                        onClick={() => window.open(`${API_BASE_URL}/qr/rooming-list/${pkg.id}/`, '_blank')}
                         className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
                         <span>??</span> View Rooming List (PDF)
                       </button>
@@ -2566,7 +2863,7 @@ function LiveAudioSection({ packages, API_BASE, showError, showSuccess }) {
                 <span className="text-xs font-bold text-red-600">LIVE</span>
               </div>
               <p className="font-bold text-gray-900">{s.title}</p>
-              <p className="text-sm text-gray-500">?? {s.listener_count} listening ù Channel: {s.channel_name}</p>
+              <p className="text-sm text-gray-500">?? {s.listener_count} listening ÔøΩ Channel: {s.channel_name}</p>
             </div>
             <button onClick={() => handleEnd(s.id)}
               className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold">
