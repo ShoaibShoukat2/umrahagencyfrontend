@@ -37,7 +37,7 @@ const AdminDashboard = ({ navigate }) => {
   };
 
   const showSuccess = (msg) => {
-    setErrorMsg('? ' + msg);
+    setErrorMsg('✅ ' + msg);
     setTimeout(() => setErrorMsg(''), 4000);
   };
 
@@ -312,7 +312,7 @@ const AdminDashboard = ({ navigate }) => {
           ...formData,
           description: formData.description || formData.short_description || selectedItem.description || '',
           min_deposit_amount: formData.min_deposit_amount || selectedItem.min_deposit_amount || 100,
-          // URLFields � send null if empty, not empty string
+          // URLFields – send null if empty, not empty string
           featured_image: formData.featured_image || null,
           hotel_image: formData.hotel_image || null,
           // category must be ID (number)
@@ -661,7 +661,7 @@ const AdminDashboard = ({ navigate }) => {
       const data = await res.json();
       if (!data.tags || data.tags.length === 0) { showError(new Error('No passengers found for this package')); return; }
 
-      // Build printable HTML page
+      const passengerCount = data.total_passengers || data.total_customers || data.tags.length;
       const tagField = tagType === 'id' ? 'id_tag' : 'bag_tag';
       const title = tagType === 'id' ? 'ID Tags' : 'Bag Tags';
       const isId = tagType === 'id';
@@ -717,10 +717,10 @@ const AdminDashboard = ({ navigate }) => {
             <!-- Left: photo + name + address -->
             <div style="flex:1;padding:10px 8px;display:flex;flex-direction:column;justify-content:center">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:52px;height:52px;border-radius:50%;border:2px solid #c8a84b;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">??</div>
+                <div style="width:52px;height:52px;border-radius:50%;border:2px solid #c8a84b;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👤</div>
                 <div>
                   <div style="font-size:11px;font-weight:900;color:#111;text-transform:uppercase;line-height:1.3">${t.customer_name}</div>
-                  <div style="font-size:9px;color:#555;margin-top:2px">Booking: ${t.booking_number}</div>
+                  <div style="font-size:9px;color:#555;margin-top:2px">Booking: ${t.booking_number}${t.room_number ? ` • Room ${t.room_number}` : ''}</div>
                 </div>
               </div>
               <div style="font-size:8px;color:#555;line-height:1.4">390 Victoria Street Singapore 188061</div>
@@ -743,8 +743,8 @@ const AdminDashboard = ({ navigate }) => {
         <style>body{font-family:Arial,sans-serif;background:#f0f0f0;padding:20px} @media print{body{background:#fff;padding:0}.no-print{display:none}}</style>
       </head><body>
         <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-          <h2 style="margin:0;color:#1b5e20">${title} � ${data.package_name} (${data.total_customers} passengers)</h2>
-          <button onclick="window.print()" style="padding:10px 22px;background:#1b5e20;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold">?? Print All</button>
+          <h2 style="margin:0;color:#1b5e20">${title} – ${data.package_name} (${passengerCount} passengers)</h2>
+          <button onclick="window.print()" style="padding:10px 22px;background:#1b5e20;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold">🖨️ Print All</button>
         </div>
         <div>${tagsHtml}</div>
       </body></html>`;
@@ -795,21 +795,21 @@ const AdminDashboard = ({ navigate }) => {
       {/* Error / Success Toast */}
       {errorMsg && (
         <div className={`fixed top-4 right-4 z-[9999] max-w-sm w-full shadow-2xl rounded-xl p-4 flex items-start gap-3 animate-slide-down ${
-          errorMsg.startsWith('?') ? 'bg-green-600' : 'bg-red-600'
+          errorMsg.startsWith('✅') ? 'bg-green-600' : 'bg-red-600'
         } text-white`}>
-          <span className="text-2xl flex-shrink-0">{errorMsg.startsWith('?') ? '?' : '?'}</span>
+          <span className="text-2xl flex-shrink-0">{errorMsg.startsWith('✅') ? '✅' : '❌'}</span>
           <div className="flex-1">
-            <p className="font-bold text-sm mb-0.5">{errorMsg.startsWith('?') ? 'Success' : 'Error'}</p>
-            <p className="text-sm text-white/90 whitespace-pre-line">{errorMsg.replace('? ', '')}</p>
+            <p className="font-bold text-sm mb-0.5">{errorMsg.startsWith('✅') ? 'Success' : 'Error'}</p>
+            <p className="text-sm text-white/90 whitespace-pre-line">{errorMsg.replace('✅ ', '')}</p>
           </div>
-          <button onClick={() => setErrorMsg('')} className="text-white/70 hover:text-white text-lg leading-none">?</button>
+          <button onClick={() => setErrorMsg('')} className="text-white/70 hover:text-white text-lg leading-none">✕</button>
         </div>
       )}
       {/* Mobile Menu Button */}
       <button 
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 bg-purple-600 text-white p-3 rounded-lg shadow-lg">
-        <span className="text-2xl">{mobileMenuOpen ? '?' : '?'}</span>
+        <span className="text-2xl">{mobileMenuOpen ? '✕' : '☰'}</span>
       </button>
 
       {/* Mobile Overlay */}
@@ -827,7 +827,7 @@ const AdminDashboard = ({ navigate }) => {
         {/* Header - Fixed */}
         <div className="p-6 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <span className="text-4xl">??</span>
+            <span className="text-4xl">🔐</span>
             <div>
               <h2 className="text-xl font-bold">Admin Panel</h2>
               <p className="text-purple-200 text-xs">{adminUser?.username}</p>
@@ -841,7 +841,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'overview' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">📊</span>
               <span>Overview</span>
             </button>
 
@@ -849,7 +849,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'bookings' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">📅</span>
               <span>Bookings</span>
               <span className="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">{data.bookings.length}</span>
             </button>
@@ -858,7 +858,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'packages' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">📦</span>
               <span>Packages</span>
               <span className="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">{data.packages.length}</span>
             </button>
@@ -867,7 +867,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'orders' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">???</span>
+              <span className="text-xl">🛍️</span>
               <span>Shop Orders</span>
               <span className="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">{data.orders.length}</span>
             </button>
@@ -876,7 +876,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'payments' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">💳</span>
               <span>Payments</span>
               <span className="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">{data.payments?.length || 0}</span>
             </button>
@@ -885,7 +885,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'categories' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">???</span>
+              <span className="text-xl">🏷️</span>
               <span>Categories</span>
               <span className="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">{data.categories.length}</span>
             </button>
@@ -894,7 +894,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'items' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">🛒</span>
               <span>Shop Items</span>
               <span className="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">{data.items.length}</span>
             </button>
@@ -903,7 +903,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'users' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">👥</span>
               <span>Users</span>
               <span className="ml-auto bg-white/20 px-2 py-1 rounded-full text-xs">{data.users.length}</span>
             </button>
@@ -912,7 +912,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'customers' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">👤</span>
               <span>Customers</span>
             </button>
 
@@ -920,7 +920,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'documents' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">📄</span>
               <span>Documents</span>
             </button>
 
@@ -950,7 +950,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'live-audio' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">???</span>
+              <span className="text-xl">🎙️</span>
               <span>Live Audio</span>
             </button>
 
@@ -958,7 +958,7 @@ const AdminDashboard = ({ navigate }) => {
               className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
                 activeSection === 'qr-tags' ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'
               }`}>
-              <span className="text-xl">??</span>
+              <span className="text-xl">🎫</span>
               <span>ID & Bag Tags</span>
             </button>
           </nav>
@@ -967,12 +967,12 @@ const AdminDashboard = ({ navigate }) => {
         <div className="p-6 flex-shrink-0 space-y-2 border-t border-white/10">
             <button onClick={() => navigate('landing')}
               className="w-full bg-white/10 hover:bg-white/20 px-4 py-3 rounded-lg transition-all flex items-center gap-3">
-              <span className="text-xl">??</span>
+              <span className="text-xl">🏠</span>
               <span>Back to Website</span>
             </button>
             <button onClick={handleLogout}
               className="w-full bg-red-500/80 hover:bg-red-600 px-4 py-3 rounded-lg transition-all flex items-center gap-3">
-              <span className="text-xl">??</span>
+              <span className="text-xl">🚪</span>
               <span>Logout</span>
             </button>
           </div>
@@ -982,20 +982,20 @@ const AdminDashboard = ({ navigate }) => {
       <div className="lg:ml-64 p-4 md:p-8 pt-20 lg:pt-8">
         <div className="mb-8">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
-            {activeSection === 'overview' && '?? Dashboard Overview'}
-            {activeSection === 'bookings' && '?? Manage Bookings'}
-            {activeSection === 'packages' && '?? Manage Packages'}
-            {activeSection === 'orders' && '??? Manage Shop Orders'}
-            {activeSection === 'payments' && '?? Manage Payments'}
-            {activeSection === 'categories' && '??? Manage Categories'}
-            {activeSection === 'items' && '? Manage Shop Items'}
-            {activeSection === 'users' && '?? Manage Users'}
-            {activeSection === 'customers' && '?? Manage Customers & Tour Leaders'}
+            {activeSection === 'overview' && '📊 Dashboard Overview'}
+            {activeSection === 'bookings' && '📅 Manage Bookings'}
+            {activeSection === 'packages' && '📦 Manage Packages'}
+            {activeSection === 'orders' && '🛍️ Manage Shop Orders'}
+            {activeSection === 'payments' && '💳 Manage Payments'}
+            {activeSection === 'categories' && '🏷️ Manage Categories'}
+            {activeSection === 'items' && '🛒 Manage Shop Items'}
+            {activeSection === 'users' && '👥 Manage Users'}
+            {activeSection === 'customers' && '👤 Manage Customers & Tour Leaders'}
             {activeSection === 'documents' && '📄 Customer Documents'}
             {activeSection === 'discount-codes' && '🏷️ Discount Codes'}
             {activeSection === 'messages' && '✉️ Contact Messages'}
-            {activeSection === 'qr-tags' && '?? ID & Bag Tags'}
-            {activeSection === 'live-audio' && '??? Live Audio Broadcast'}
+            {activeSection === 'qr-tags' && '🎫 ID & Bag Tags'}
+            {activeSection === 'live-audio' && '🎙️ Live Audio Broadcast'}
           </h1>
           <p className="text-gray-600">Welcome back, {adminUser?.username}</p>
         </div>
@@ -1029,27 +1029,27 @@ const AdminDashboard = ({ navigate }) => {
               ))}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <StatCard icon="??" title="Total Bookings" value={stats.totalBookings}
+              <StatCard icon="📊" title="Total Bookings" value={stats.totalBookings}
                 color="from-blue-500 to-blue-600" subtitle={`${stats.pendingBookings} pending`}
                 onClick={() => setActiveSection('bookings')} />
               {adminUser?.is_superuser && (
-                <StatCard icon="??" title="Total Revenue" value={`$${stats.totalRevenue.toFixed(2)}`}
+                <StatCard icon="💰" title="Total Revenue" value={`$${stats.totalRevenue.toFixed(2)}`}
                   color="from-green-500 to-green-600" onClick={() => setActiveSection('bookings')} />
               )}
-              <StatCard icon="??" title="Total Customers" value={stats.totalCustomers}
+              <StatCard icon="👥" title="Total Customers" value={stats.totalCustomers}
                 color="from-purple-500 to-purple-600" />
-              <StatCard icon="??" title="Packages" value={stats.totalPackages}
+              <StatCard icon="📦" title="Packages" value={stats.totalPackages}
                 color="from-orange-500 to-orange-600" onClick={() => setActiveSection('packages')} />
-              <StatCard icon="???" title="Shop Orders" value={stats.totalOrders}
+              <StatCard icon="🛍️" title="Shop Orders" value={stats.totalOrders}
                 color="from-pink-500 to-pink-600" onClick={() => setActiveSection('orders')} />
-              <StatCard icon="?" title="Pending Bookings" value={stats.pendingBookings}
+              <StatCard icon="⏳" title="Pending Bookings" value={stats.pendingBookings}
                 color="from-yellow-500 to-yellow-600" onClick={() => setActiveSection('bookings')} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <span>??</span> Recent Bookings
+                  <span>📅</span> Recent Bookings
                 </h3>
                 <div className="space-y-3">
                   {data.bookings.slice(0, 5).map(booking => (
@@ -1074,7 +1074,7 @@ const AdminDashboard = ({ navigate }) => {
 
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <span>???</span> Recent Orders
+                  <span>🛍️</span> Recent Orders
                 </h3>
                 <div className="space-y-3">
                   {data.orders.slice(0, 5).map(order => (
@@ -1106,7 +1106,7 @@ const AdminDashboard = ({ navigate }) => {
               <button
                 onClick={() => openModal('add-booking')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2">
-                <span className="text-xl">?</span>
+                <span className="text-xl">➕</span>
                 Add Walk-in Booking
               </button>
               <input
@@ -1160,7 +1160,7 @@ const AdminDashboard = ({ navigate }) => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.customer?.email}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">{booking.package_name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-center">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{totalPax || '�'}</span>
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{totalPax || '—'}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <select
@@ -1208,17 +1208,17 @@ const AdminDashboard = ({ navigate }) => {
               <button
                 onClick={() => openModal('add-package')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 md:px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base">
-                <span className="text-xl">?</span>
+                <span className="text-xl">➕</span>
                 Add New Package
               </button>
               <button
                 onClick={handleExportPackages}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 md:px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base">
-                <span className="text-xl">??</span>
+                <span className="text-xl">📥</span>
                 Export Packages
               </button>
               <label className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 md:px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base">
-                <span className="text-xl">??</span>
+                <span className="text-xl">📤</span>
                 Import Packages
                 <input type="file" accept=".csv" onChange={handleImportPackages} className="hidden" />
               </label>
@@ -1255,9 +1255,9 @@ const AdminDashboard = ({ navigate }) => {
             <div className="flex flex-wrap gap-2 mb-6">
               {[
                 { key: 'all', label: 'All', color: 'bg-gray-600' },
-                { key: 'active', label: '? Active (Online)', color: 'bg-green-600' },
-                { key: 'inactive', label: '? Inactive (Hidden)', color: 'bg-red-500' },
-                { key: 'featured', label: '? Featured', color: 'bg-yellow-500' },
+                { key: 'active', label: '✅ Active (Online)', color: 'bg-green-600' },
+                { key: 'inactive', label: '🚫 Inactive (Hidden)', color: 'bg-red-500' },
+                { key: 'featured', label: '⭐ Featured', color: 'bg-yellow-500' },
               ].map(f => (
                 <button key={f.key} onClick={() => setPackageStatusFilter(f.key)}
                   className={`px-4 py-2 rounded-full text-sm font-semibold text-white transition-all ${
@@ -1284,9 +1284,9 @@ const AdminDashboard = ({ navigate }) => {
                     <img src={pkg.featured_image} alt={pkg.name} className="w-full h-48 object-cover" />
                     <div className="absolute top-2 left-2 flex gap-1">
                       <span className={`px-2 py-1 rounded-full text-xs font-bold ${pkg.is_active ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                        {pkg.is_active ? '? Online' : '? Hidden'}
+                        {pkg.is_active ? '✅ Online' : '🚫 Hidden'}
                       </span>
-                      {pkg.is_featured && <span className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold">? Featured</span>}
+                      {pkg.is_featured && <span className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold">⭐ Featured</span>}
                     </div>
                   </div>
                 )}
@@ -1337,22 +1337,22 @@ const AdminDashboard = ({ navigate }) => {
                     <button
                       onClick={() => handleViewPassengers(pkg.id)}
                       className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
-                      ?? Passengers
+                      👥 Passengers
                     </button>
                     <button
                       onClick={() => handleExportPassengers(pkg.id)}
                       className="bg-cyan-500 hover:bg-cyan-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
-                      ?? Export
+                      📥 Export
                     </button>
                     <button
                       onClick={() => handlePrintTags(pkg.id, 'id')}
                       className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
-                      ?? ID Tags
+                      🎫 ID Tags
                     </button>
                     <button
                       onClick={() => handlePrintTags(pkg.id, 'bag')}
                       className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all">
-                      ?? Bag Tags
+                      🧳 Bag Tags
                     </button>
                   </div>
 
@@ -1370,7 +1370,7 @@ const AdminDashboard = ({ navigate }) => {
                         }
                       }}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
-                      ?? Edit
+                      ✏️ Edit
                     </button>
                     <button
                       onClick={async () => {
@@ -1385,12 +1385,12 @@ const AdminDashboard = ({ navigate }) => {
                         } catch(e) { showError(e); }
                       }}
                       className={`px-3 py-2 rounded-lg font-medium transition-all text-white text-sm ${pkg.is_active ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}>
-                      {pkg.is_active ? '?? Hide' : '?? Show'}
+                      {pkg.is_active ? '👁️ Hide' : '👁️ Show'}
                     </button>
                     <button
                       onClick={() => handleDeletePackage(pkg.id)}
                       className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
-                      ?? Delete
+                      🗑️ Delete
                     </button>
                   </div>
                 </div>
@@ -1461,7 +1461,7 @@ const AdminDashboard = ({ navigate }) => {
               <button
                 onClick={() => openModal('add-payment')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2">
-                <span className="text-xl">?</span>
+                <span className="text-xl">➕</span>
                 Add Manual Payment
               </button>
             </div>
@@ -1510,7 +1510,7 @@ const AdminDashboard = ({ navigate }) => {
                           <button
                             onClick={() => window.open(payment.payment_screenshot, '_blank')}
                             className="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                            View ???
+                            View 🖼️
                           </button>
                         ) : (
                           <span className="text-gray-400 text-sm">No screenshot</span>
@@ -1525,12 +1525,12 @@ const AdminDashboard = ({ navigate }) => {
                             <button
                               onClick={() => handleUpdatePaymentStatus(payment.id, 'completed')}
                               className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded font-medium">
-                              ? Accept
+                              ✓ Accept
                             </button>
                             <button
                               onClick={() => handleUpdatePaymentStatus(payment.id, 'rejected')}
                               className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded font-medium">
-                              ? Reject
+                              ✕ Reject
                             </button>
                           </>
                         )}
@@ -1561,7 +1561,7 @@ const AdminDashboard = ({ navigate }) => {
               <button
                 onClick={() => openModal('add-category')}
                 className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2">
-                <span className="text-xl">?</span>
+                <span className="text-xl">➕</span>
                 Add New Category
               </button>
             </div>
@@ -1602,7 +1602,7 @@ const AdminDashboard = ({ navigate }) => {
               <button
                 onClick={() => openModal('add-item')}
                 className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2">
-                <span className="text-xl">?</span>
+                <span className="text-xl">➕</span>
                 Add New Item
               </button>
             </div>
@@ -1644,7 +1644,7 @@ const AdminDashboard = ({ navigate }) => {
               <button
                 onClick={() => openModal('add-user')}
                 className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2">
-                <span className="text-xl">?</span>
+                <span className="text-xl">➕</span>
                 Add New User
               </button>
             </div>
@@ -1695,7 +1695,7 @@ const AdminDashboard = ({ navigate }) => {
           <div>
             <div className="mb-6 bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700">
-                <span className="font-semibold">?? Tip:</span> Mark customers as "Tour Leader" to assign them to packages. 
+                <span className="font-semibold">💡 Tip:</span> Mark customers as "Tour Leader" to assign them to packages. 
                 Tour leaders will appear in the dropdown when creating/editing packages.
               </p>
             </div>
@@ -1727,7 +1727,7 @@ const AdminDashboard = ({ navigate }) => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${customer.is_tour_leader ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                              {customer.is_tour_leader ? '? Yes' : 'No'}
+                              {customer.is_tour_leader ? '✓ Yes' : 'No'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1956,7 +1956,7 @@ const AdminDashboard = ({ navigate }) => {
           <div>
             {/* Info Banner */}
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 mb-8 text-white flex items-center gap-4">
-              <div className="text-5xl">??</div>
+              <div className="text-5xl">🎫</div>
               <div>
                 <h2 className="text-xl font-bold mb-1">ID & Bag Tag Generator</h2>
                 <p className="text-purple-100 text-sm">Generate and print ID tags or Bag tags for all passengers in a package. Tags include QR codes for quick scanning.</p>
@@ -1967,22 +1967,22 @@ const AdminDashboard = ({ navigate }) => {
             <div className="flex flex-wrap gap-4 mb-6">
               <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-purple-100">
                 <div className="w-3 h-3 rounded-full bg-purple-600"></div>
-                <span className="text-sm font-medium text-gray-700">?? ID Tag � Name, Booking #, Emergency Contact, QR</span>
+                <span className="text-sm font-medium text-gray-700">🎫 ID Tag – Name, Booking #, Emergency Contact, QR</span>
               </div>
               <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-orange-100">
                 <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                <span className="text-sm font-medium text-gray-700">?? Bag Tag � Name, Room #, Hotel, Package QR</span>
+                <span className="text-sm font-medium text-gray-700">🧳 Bag Tag – Name, Room #, Hotel, Package QR</span>
               </div>
               <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2 shadow-sm border border-blue-100">
                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                <span className="text-sm font-medium text-gray-700">?? Rooming List � Full PDF with all room assignments</span>
+                <span className="text-sm font-medium text-gray-700">📋 Rooming List – Full PDF with all room assignments</span>
               </div>
             </div>
 
             {/* Package Cards */}
             {data.packages.filter(p => p.is_active).length === 0 ? (
               <div className="bg-white rounded-2xl shadow p-12 text-center">
-                <div className="text-6xl mb-4">??</div>
+                <div className="text-6xl mb-4">📦</div>
                 <p className="text-gray-500 text-lg">No active packages found</p>
               </div>
             ) : (
@@ -1996,7 +1996,7 @@ const AdminDashboard = ({ navigate }) => {
                       )}
                       <h3 className="font-bold text-white text-base leading-tight">{pkg.name}</h3>
                       <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs text-gray-300">?? {new Date(pkg.travel_date).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        <span className="text-xs text-gray-300">📅 {new Date(pkg.travel_date).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                         <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Active</span>
                       </div>
                     </div>
@@ -2004,16 +2004,16 @@ const AdminDashboard = ({ navigate }) => {
                     {/* Passenger Count */}
                     <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">??</span>
+                        <span className="text-2xl">👥</span>
                         <div>
                           <p className="text-xs text-gray-500">Registered Passengers</p>
                           <p className="font-bold text-gray-900 text-lg">
-                            {data.bookings.filter(b => b.package_name === pkg.name).reduce((sum, b) => sum + (b.rooms?.reduce((rs, r) => rs + (r.passengers?.length || 0), 0) || 0), 0) || '�'}
+                            {data.bookings.filter(b => b.package_name === pkg.name).reduce((sum, b) => sum + (b.rooms?.reduce((rs, r) => rs + (r.passengers?.length || 0), 0) || 0), 0) || '—'}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">??</span>
+                        <span className="text-2xl">📅</span>
                         <div>
                           <p className="text-xs text-gray-500">Bookings</p>
                           <p className="font-bold text-gray-900 text-lg">{data.bookings.filter(b => b.package_name === pkg.name).length}</p>
@@ -2026,17 +2026,17 @@ const AdminDashboard = ({ navigate }) => {
                       <button
                         onClick={() => handlePrintTags(pkg.id, 'id')}
                         className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
-                        <span>??</span> Print ID Tags (All Passengers)
+                        <span>🎫</span> Print ID Tags (All Passengers)
                       </button>
                       <button
                         onClick={() => handlePrintTags(pkg.id, 'bag')}
                         className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
-                        <span>??</span> Print Bag Tags (All Passengers)
+                        <span>🧳</span> Print Bag Tags (All Passengers)
                       </button>
                       <button
                         onClick={() => window.open(`${API_BASE_URL}/qr/rooming-list/${pkg.id}/`, '_blank')}
                         className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
-                        <span>??</span> View Rooming List (PDF)
+                        <span>📋</span> View Rooming List (PDF)
                       </button>
                     </div>
                   </div>
@@ -2053,11 +2053,11 @@ const AdminDashboard = ({ navigate }) => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
-                {modalType === 'view-booking' && '??? View Booking Details'}
-                {modalType === 'view-order' && '??? View Order Details'}
-                {modalType === 'view-passengers' && '?? Passenger List'}
-                {modalType.includes('add') && `? Add New ${modalType.split('-')[1]}`}
-                {modalType.includes('edit') && `?? Edit ${modalType.split('-')[1]}`}
+                {modalType === 'view-booking' && '👁️ View Booking Details'}
+                {modalType === 'view-order' && '👁️ View Order Details'}
+                {modalType === 'view-passengers' && '👥 Passenger List'}
+                {modalType.includes('add') && `➕ Add New ${modalType.split('-')[1]}`}
+                {modalType.includes('edit') && `✏️ Edit ${modalType.split('-')[1]}`}
               </h2>
               <button onClick={closeModal} className="text-white hover:bg-white/20 p-2 rounded-lg transition-all">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2073,7 +2073,7 @@ const AdminDashboard = ({ navigate }) => {
                   {modalType === 'view-passengers' && (
                     <>
                       <div className="bg-indigo-50 p-4 rounded-lg">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">?? Passenger List</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">👥 Passenger List</h3>
                         <p className="text-gray-700"><span className="font-semibold">Package:</span> {selectedItem.name}</p>
                         <p className="text-gray-700"><span className="font-semibold">Total Passengers:</span> {selectedItem.total}</p>
                       </div>
@@ -2113,7 +2113,7 @@ const AdminDashboard = ({ navigate }) => {
                         <button 
                           onClick={() => handleExportPassengers(selectedItem.id)}
                           className="flex-1 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold">
-                          ?? Export to CSV
+                          📥 Export to CSV
                         </button>
                         <button onClick={closeModal}
                           className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-semibold">
@@ -2126,7 +2126,7 @@ const AdminDashboard = ({ navigate }) => {
                     <>
                       <div className="grid grid-cols-2 gap-6">
                         <div className="bg-gray-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-bold text-gray-900 mb-3">?? Booking Info</h3>
+                          <h3 className="text-lg font-bold text-gray-900 mb-3">📋 Booking Info</h3>
                           <div className="space-y-2">
                             <p><span className="text-gray-600">Booking #:</span> <span className="font-semibold">{selectedItem.booking_number}</span></p>
                             <p><span className="text-gray-600">Package:</span> <span className="font-semibold">{selectedItem.package_name}</span></p>
@@ -2135,7 +2135,7 @@ const AdminDashboard = ({ navigate }) => {
                           </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-bold text-gray-900 mb-3">?? Financial</h3>
+                          <h3 className="text-lg font-bold text-gray-900 mb-3">💰 Financial</h3>
                           <div className="space-y-2">
                             <p><span className="text-gray-600">Total:</span> <span className="text-xl font-bold">${selectedItem.total_amount}</span></p>
                             <p><span className="text-gray-600">Paid:</span> <span className="text-lg font-bold text-green-600">${selectedItem.paid_amount}</span></p>
@@ -2145,7 +2145,7 @@ const AdminDashboard = ({ navigate }) => {
                       </div>
                       {selectedItem.payments && selectedItem.payments.length > 0 && (
                         <div className="bg-blue-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-bold text-gray-900 mb-3">?? Payment Screenshots</h3>
+                          <h3 className="text-lg font-bold text-gray-900 mb-3">💳 Payment Screenshots</h3>
                           <div className="grid grid-cols-2 gap-4">
                             {selectedItem.payments.map((payment, idx) => (
                               <div key={idx} className="bg-white p-3 rounded-lg border-2 border-gray-200">
@@ -2170,7 +2170,7 @@ const AdminDashboard = ({ navigate }) => {
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-gray-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-bold text-gray-900 mb-3">?? Order Info</h3>
+                          <h3 className="text-lg font-bold text-gray-900 mb-3">📦 Order Info</h3>
                           <p><span className="text-gray-600">Order #:</span> <span className="font-semibold">{selectedItem.order_number}</span></p>
                           <p><span className="text-gray-600">Customer:</span> <span className="font-semibold">{selectedItem.customer?.email}</span></p>
                           <p><span className="text-gray-600">Status:</span> <span className={`font-semibold ${selectedItem.status === 'delivered' ? 'text-green-600' : selectedItem.status === 'cancelled' ? 'text-red-600' : selectedItem.status === 'refunded' ? 'text-orange-600' : 'text-blue-600'}`}>{selectedItem.status?.toUpperCase()}</span></p>
@@ -2179,7 +2179,7 @@ const AdminDashboard = ({ navigate }) => {
                         </div>
                         
                         <div className="bg-green-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-bold text-gray-900 mb-3">?? Shipping Address</h3>
+                          <h3 className="text-lg font-bold text-gray-900 mb-3">📍 Shipping Address</h3>
                           <p className="font-semibold">{selectedItem.shipping_name || 'N/A'}</p>
                           <p className="text-gray-700">{selectedItem.shipping_address || 'N/A'}</p>
                           <p className="text-gray-700">{selectedItem.shipping_city || ''} {selectedItem.shipping_postal_code || ''}</p>
@@ -2189,7 +2189,7 @@ const AdminDashboard = ({ navigate }) => {
                       </div>
 
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <h3 className="text-lg font-bold text-gray-900 mb-3">?? Order Items</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3">🛒 Order Items</h3>
                         <div className="space-y-2">
                           {selectedItem.items?.map((item, idx) => (
                             <div key={idx} className="flex justify-between items-center bg-white p-3 rounded">
@@ -2207,7 +2207,7 @@ const AdminDashboard = ({ navigate }) => {
                       </div>
 
                       <div className="bg-yellow-50 p-4 rounded-lg">
-                        <h3 className="text-lg font-bold text-gray-900 mb-3">?? Payment Screenshot</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3">💳 Payment Screenshot</h3>
                         {selectedItem.payment_screenshot ? (
                           <div>
                             <img src={selectedItem.payment_screenshot} alt="Payment" className="w-full h-48 object-cover rounded cursor-pointer" onClick={() => window.open(selectedItem.payment_screenshot, '_blank')} />
@@ -2325,7 +2325,7 @@ const AdminDashboard = ({ navigate }) => {
                     </div>
 
                     <div className="bg-cyan-50 p-4 rounded-lg">
-                      <h4 className="font-bold text-gray-900 mb-3">?? Hotel Details (Optional)</h4>
+                      <h4 className="font-bold text-gray-900 mb-3">🏨 Hotel Details (Optional)</h4>
                       <div className="space-y-3">
                         <input type="text" placeholder="Hotel Name" value={formData.hotel_name || ''} 
                           onChange={(e) => handleFormChange('hotel_name', e.target.value)}
@@ -2337,11 +2337,11 @@ const AdminDashboard = ({ navigate }) => {
                               onChange={(e) => handleFormChange('hotel_star_rating', e.target.value)}
                               className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
                               <option value="">Select Rating</option>
-                              <option value="1">? 1 Star</option>
-                              <option value="2">?? 2 Stars</option>
-                              <option value="3">??? 3 Stars</option>
-                              <option value="4">???? 4 Stars</option>
-                              <option value="5">????? 5 Stars</option>
+                              <option value="1">⭐ 1 Star</option>
+                              <option value="2">⭐⭐ 2 Stars</option>
+                              <option value="3">⭐⭐⭐ 3 Stars</option>
+                              <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                              <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
                             </select>
                           </div>
                           <input type="text" placeholder="Country" value={formData.hotel_country || ''} 
@@ -2359,7 +2359,7 @@ const AdminDashboard = ({ navigate }) => {
                     </div>
 
                     <div className="bg-green-50 p-4 rounded-lg">
-                      <h4 className="font-bold text-gray-900 mb-3">????? Tour Leader (Optional)</h4>
+                      <h4 className="font-bold text-gray-900 mb-3">👨‍✈️ Tour Leader (Optional)</h4>
                       <select 
                         value={formData.tour_leader || ''} 
                         onChange={(e) => handleFormChange('tour_leader', e.target.value)}
@@ -2376,7 +2376,7 @@ const AdminDashboard = ({ navigate }) => {
 
                     {/* Room Prices */}
                     <div className="bg-yellow-50 border-2 border-yellow-200 p-4 rounded-lg">
-                      <h4 className="font-bold text-gray-900 mb-3">?? Room Prices (per person)</h4>
+                      <h4 className="font-bold text-gray-900 mb-3">🛏️ Room Prices (per person)</h4>
                       <div className="space-y-3">
                         {[
                           { key: 'single', label: 'Single (1 pax)' },
@@ -2643,7 +2643,7 @@ const AdminDashboard = ({ navigate }) => {
                 {modalType === 'add-payment' && (
                   <>
                     <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="font-bold text-gray-900 mb-3">?? Manual Payment Entry</h4>
+                      <h4 className="font-bold text-gray-900 mb-3">💳 Manual Payment Entry</h4>
                       <p className="text-sm text-gray-600 mb-4">Add a payment received at the shop or office</p>
                       
                       <div className="space-y-3">
@@ -2781,7 +2781,7 @@ function LiveAudioSection({ packages, API_BASE, showError, showSuccess }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
-      showSuccess(`?? Live started! ${data.customers_notified} passengers notified. Channel: ${data.channel_name}`);
+      showSuccess(`🔴 Live started! ${data.customers_notified} passengers notified. Channel: ${data.channel_name}`);
       fetchSessions(selectedPkg);
     } catch (e) { showError(e); }
     finally { setLoading(false); }
@@ -2810,7 +2810,7 @@ function LiveAudioSection({ packages, API_BASE, showError, showSuccess }) {
     <div>
       {/* Info Banner */}
       <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-6 mb-8 text-white flex items-center gap-4">
-        <div className="text-5xl">???</div>
+        <div className="text-5xl">🎙️</div>
         <div>
           <h2 className="text-xl font-bold mb-1">Live Audio Broadcast</h2>
           <p className="text-red-100 text-sm">Start a live audio session for your group. All passengers in the package will be notified on their mobile app.</p>
@@ -2819,7 +2819,7 @@ function LiveAudioSection({ packages, API_BASE, showError, showSuccess }) {
 
       {/* Start Broadcast */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-        <h3 className="text-lg font-bold mb-4">?? Start New Broadcast</h3>
+        <h3 className="text-lg font-bold mb-4">🎙️ Start New Broadcast</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Select Package</label>
@@ -2840,19 +2840,19 @@ function LiveAudioSection({ packages, API_BASE, showError, showSuccess }) {
         </div>
         <button onClick={handleStart} disabled={loading || !selectedPkg}
           className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50">
-          {loading ? '? Starting...' : '?? Start Live Broadcast'}
+          {loading ? '⏳ Starting...' : '🔴 Start Live Broadcast'}
         </button>
       </div>
 
       {/* Active Sessions */}
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold">?? Active Sessions</h3>
+          <h3 className="text-lg font-bold">📡 Active Sessions</h3>
           <button onClick={() => fetchSessions(selectedPkg)} className="text-sm text-red-600 hover:underline">Refresh</button>
         </div>
         {sessions.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
-            <div className="text-4xl mb-2">??</div>
+            <div className="text-4xl mb-2">🔇</div>
             <p>No active sessions. Start a broadcast above.</p>
           </div>
         ) : sessions.map(s => (
@@ -2863,11 +2863,11 @@ function LiveAudioSection({ packages, API_BASE, showError, showSuccess }) {
                 <span className="text-xs font-bold text-red-600">LIVE</span>
               </div>
               <p className="font-bold text-gray-900">{s.title}</p>
-              <p className="text-sm text-gray-500">?? {s.listener_count} listening � Channel: {s.channel_name}</p>
+              <p className="text-sm text-gray-500">🎧 {s.listener_count} listening – Channel: {s.channel_name}</p>
             </div>
             <button onClick={() => handleEnd(s.id)}
               className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-              ? End
+              ⏹ End
             </button>
           </div>
         ))}

@@ -47,16 +47,16 @@ const QRCodeManager = () => {
     }
   };
 
-  const generateIdTag = async (customerId) => {
+  const generateIdTag = async (passengerId) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/qr/id-tag/${customerId}/`);
+      const response = await fetch(`${API_BASE_URL}/qr/id-tag/passenger/${passengerId}/`);
       const data = await response.json();
       
       if (data.success) {
         setGeneratedTags(prev => ({
           ...prev,
-          [`id_${customerId}`]: data
+          [`id_${passengerId}`]: data
         }));
         alert('ID tag generated successfully!');
       }
@@ -68,16 +68,16 @@ const QRCodeManager = () => {
     }
   };
 
-  const generateBagTag = async (customerId) => {
+  const generateBagTag = async (passengerId) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/qr/bag-tag/${customerId}/`);
+      const response = await fetch(`${API_BASE_URL}/qr/bag-tag/passenger/${passengerId}/`);
       const data = await response.json();
       
       if (data.success) {
         setGeneratedTags(prev => ({
           ...prev,
-          [`bag_${customerId}`]: data
+          [`bag_${passengerId}`]: data
         }));
         alert('Bag tag generated successfully!');
       }
@@ -108,16 +108,17 @@ const QRCodeManager = () => {
         // Store generated tags
         const newTags = {};
         data.tags.forEach(tag => {
+          const pid = tag.passenger_id || tag.customer_id;
           if (tag.id_tag) {
-            newTags[`id_${tag.customer_id}`] = tag;
+            newTags[`id_${pid}`] = tag;
           }
           if (tag.bag_tag) {
-            newTags[`bag_${tag.customer_id}`] = tag;
+            newTags[`bag_${pid}`] = tag;
           }
         });
         
         setGeneratedTags(prev => ({ ...prev, ...newTags }));
-        alert(`Generated ${tagType} tags for ${data.total_customers} customers!`);
+        alert(`Generated ${tagType} tags for ${data.total_passengers || data.total_customers} passengers!`);
       }
     } catch (error) {
       console.error('Error generating bulk tags:', error);
@@ -240,14 +241,14 @@ const QRCodeManager = () => {
                       <div className="customer-actions">
                         <button
                           className="tag-btn id-tag-btn"
-                          onClick={() => generateIdTag(customer.id)}
+                          onClick={() => generateIdTag(customer.passenger_id || customer.id)}
                           title="Generate ID Tag"
                         >
                           🏷️
                         </button>
                         <button
                           className="tag-btn bag-tag-btn"
-                          onClick={() => generateBagTag(customer.id)}
+                          onClick={() => generateBagTag(customer.passenger_id || customer.id)}
                           title="Generate Bag Tag"
                         >
                           🎒
