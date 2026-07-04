@@ -40,6 +40,19 @@ export const api = {
     return response.json();
   },
 
+  // AI Chat Assistant
+  sendChatMessage: async (message) => {
+    const response = await fetch(`${API_BASE_URL}/chat/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
+    if (!response.ok) {
+      throw new Error('AI service unavailable');
+    }
+    return response.json();
+  },
+
   // Booking
   createBooking: async (bookingData) => {
     const formData = new FormData();

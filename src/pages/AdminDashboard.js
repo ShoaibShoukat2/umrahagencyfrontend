@@ -649,6 +649,138 @@ const AdminDashboard = ({ navigate }) => {
     adminApi.exportPackagePassengers(packageId);
   };
 
+  const handleViewRoomingList = async (packageId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/qr/rooming-list/${packageId}/`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to load rooming list');
+      }
+      const payload = await res.json();
+      const data = payload.rooming_data || payload;
+      const pkg = data.package || {};
+      const rooms = data.rooms || {};
+      const roomEntries = Object.entries(rooms);
+
+      if (roomEntries.length === 0) {
+        showError(new Error('No room assignments found for this package'));
+        return;
+      }
+
+      const travelDate = pkg.travel_date
+        ? new Date(pkg.travel_date).toLocaleDateString('en-SG', { day: 'numeric', month: 'long', year: 'numeric' })
+        : 'TBA';
+
+      const roomsHtml = roomEntries.map(([roomKey, room], idx) => {
+        const customers = room.customers || [];
+        const rows = customers.map((c, i) => `
+          <tr>
+            <td style="padding:8px 10px;border:1px solid #ddd;text-align:center">${i + 1}</td>
+            <td style="padding:8px 10px;border:1px solid #ddd;font-weight:600">${c.name || '—'}</td>
+            <td style="padding:8px 10px;border:1px solid #ddd">${c.booking_number || '—'}</td>
+            <td style="padding:8px 10px;border:1px solid #ddd;text-transform:capitalize">${c.passenger_type || '—'}</td>
+            <td style="padding:8px 10px;border:1px solid #ddd;text-transform:capitalize">${c.gender || '—'}</td>
+            <td style="padding:8px 10px;border:1px solid #ddd">${c.phone || '—'}</td>
+            <td style="padding:8px 10px;border:1px solid #ddd;font-size:12px">${c.emergency_contact || '—'}</td>
+          </tr>
+        `).join('');
+
+        return `
+          <div style="margin-bottom:28px;page-break-inside:avoid">
+            <div style="background:#1b5e20;color:#fff;padding:12px 16px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:16px;font-weight:800">${roomKey}</div>
+                <div style="font-size:12px;opacity:.9;margin-top:2px">
+                  Type: <strong style="text-transform:capitalize">${room.room_type || '—'}</strong>
+                  &nbsp;•&nbsp; Guests: <strong>${customers.length}</strong>
+                </div>
+              </div>
+              <div style="background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700">
+                Room ${idx + 1} of ${roomEntries.length}
+              </div>
+            </div>
+            <table style="width:100%;border-collapse:collapse;background:#fff;font-size:13px">
+              <thead>
+                <tr style="background:#e8f5e9">
+                  <th style="padding:10px;border:1px solid #ddd;width:40px">#</th>
+                  <th style="padding:10px;border:1px solid #ddd;text-align:left">Name</th>
+                  <th style="padding:10px;border:1px solid #ddd;text-align:left">Booking #</th>
+                  <th style="padding:10px;border:1px solid #ddd;text-align:left">Type</th>
+                  <th style="padding:10px;border:1px solid #ddd;text-align:left">Gender</th>
+                  <th style="padding:10px;border:1px solid #ddd;text-align:left">Phone</th>
+                  <th style="padding:10px;border:1px solid #ddd;text-align:left">Emergency Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows || '<tr><td colspan="7" style="padding:16px;text-align:center;color:#888">No passengers in this room</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }).join('');
+
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Rooming List - ${pkg.name || 'Package'}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #f0f0f0; margin: 0; padding: 24px; color: #222; }
+    .sheet { max-width: 1000px; margin: 0 auto; }
+    @media print {
+      body { background: #fff; padding: 12px; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap">
+      <h2 style="margin:0;color:#1b5e20">Rooming List</h2>
+      <button onclick="window.print()" style="padding:10px 22px;background:#1b5e20;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold">🖨️ Print / Save PDF</button>
+    </div>
+
+    <div style="background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 2px 10px rgba(0,0,0,.08);border-top:5px solid #1b5e20">
+      <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div>
+          <div style="font-size:12px;color:#1b5e20;font-weight:800;letter-spacing:1px;margin-bottom:4px">TM FOUZY TRAVEL &amp; TOURS</div>
+          <h1 style="margin:0 0 8px;font-size:22px;color:#111">${pkg.name || 'Package'}</h1>
+          <div style="font-size:14px;color:#555;line-height:1.7">
+            <div><strong>Travel Date:</strong> ${travelDate}</div>
+            <div><strong>Location:</strong> ${pkg.location || '—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="background:#e8f5e9;padding:12px 18px;border-radius:10px;text-align:center;min-width:90px">
+            <div style="font-size:22px;font-weight:800;color:#1b5e20">${data.total_rooms || roomEntries.length}</div>
+            <div style="font-size:11px;color:#555;font-weight:600">Rooms</div>
+          </div>
+          <div style="background:#e3f2fd;padding:12px 18px;border-radius:10px;text-align:center;min-width:90px">
+            <div style="font-size:22px;font-weight:800;color:#1565c0">${data.total_customers || 0}</div>
+            <div style="font-size:11px;color:#555;font-weight:600">Passengers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${roomsHtml}
+
+    <div style="text-align:center;color:#888;font-size:12px;margin-top:16px">
+      Generated by TM Fouzy Admin • ${new Date().toLocaleString('en-SG')}
+    </div>
+  </div>
+</body>
+</html>`;
+
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (e) {
+      showError(e);
+    }
+  };
+
   const handlePrintTags = async (packageId, tagType) => {
     try {
       const API = API_BASE_URL;
@@ -2034,9 +2166,9 @@ const AdminDashboard = ({ navigate }) => {
                         <span>🧳</span> Print Bag Tags (All Passengers)
                       </button>
                       <button
-                        onClick={() => window.open(`${API_BASE_URL}/qr/rooming-list/${pkg.id}/`, '_blank')}
+                        onClick={() => handleViewRoomingList(pkg.id)}
                         className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md">
-                        <span>📋</span> View Rooming List (PDF)
+                        <span>📋</span> View Rooming List
                       </button>
                     </div>
                   </div>

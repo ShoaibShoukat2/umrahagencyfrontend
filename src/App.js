@@ -141,7 +141,7 @@ function App() {
       <ErrorBoundary>
         <div className="min-h-screen bg-gray-50">
           {renderPage()}
-          <AIChatBot />
+          <AIChatBot hidden={currentPage === 'admin-login' || currentPage === 'admin-dashboard'} />
           {currentPage === 'landing' && <PromoPopup />}
         </div>
       </ErrorBoundary>
