@@ -1,5 +1,5 @@
-// API Base URL - Use environment variable or default to PythonAnywhere
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tmfauwaz.pythonanywhere.com/api';
+// API Base URL - Use environment variable or default to production backend
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://backend.tmfouzy.sg/api';
 export const api = {
   // Categories
   getCategories: async () => {
