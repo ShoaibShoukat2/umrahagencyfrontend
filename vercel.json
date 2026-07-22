@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "env": {
-    "REACT_APP_API_URL": "https://Tmfauwaz.pythonanywhere.com/api"
-  }
-}
