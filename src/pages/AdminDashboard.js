@@ -305,7 +305,22 @@ const AdminDashboard = ({ navigate }) => {
   const handleSubmitForm = async () => {
     try {
       if (modalType === 'add-package') {
-        await adminApi.createPackage(formData);
+        const newPkg = await adminApi.createPackage(formData);
+        // Save room prices for newly created package
+        if (newPkg && newPkg.id) {
+          const roomTypes = ['single', 'double', 'triple', 'quad'];
+          for (const key of roomTypes) {
+            const price = formData[`room_price_${key}`];
+            if (price !== undefined && price !== '') {
+              const avail = formData[`room_avail_${key}`] ?? true;
+              await fetch(`${API_BASE_URL}/admin/packages/${newPkg.id}/update_room_price/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sharing_type: key, price: parseFloat(price), available: avail })
+              });
+            }
+          }
+        }
         showSuccess('Package created successfully!');
       } else if (modalType === 'edit-package') {
         const payload = {
