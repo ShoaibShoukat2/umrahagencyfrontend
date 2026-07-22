@@ -1,26 +1,31 @@
-# ==========================================
-# IGNORE EVERYTHING FIRST
-# ==========================================
+# Ignore everything
 *
 
-# ==========================================
-# THEN UN-IGNORE ONLY WHAT WE NEED
-# ==========================================
-
-# Keep this .gitignore itself
+# Un-ignore .gitignore itself
 !.gitignore
 
-# Keep .htaccess (cPanel routing)
+# Un-ignore .htaccess (cPanel routing)
 !.htaccess
 
-# Keep build folder and all its contents
-!build/
-!build/**
+# Un-ignore root-level build output files (copied by deploy.ps1)
+!index.html
+!asset-manifest.json
+!manifest.json
+!robots.txt
+!favicon.ico
+!logo.jpeg
+!logo192.png
+!logo512.png
+!paynow-qr.jpeg
 
-# ==========================================
-# EXPLICITLY IGNORE HEAVY/SENSITIVE STUFF
-# (safety — even though * covers them)
-# ==========================================
+# Un-ignore static folder (CSS/JS)
+!static/
+!static/**
+
+# Ignore build source folder (we copy from it, don't push it)
+build/
+
+# Ignore everything else
 node_modules/
 src/
 public/
